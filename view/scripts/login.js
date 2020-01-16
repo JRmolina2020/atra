@@ -57,7 +57,7 @@ function validar() {
               message: "El password es obligatorio y no puede estar vacio."
             },
             stringLength: {
-              min: 5,
+              min: 4,
               max: 20,
               message: "Minimo 5 caracteres Max 20 caracteres"
             }
