@@ -11,13 +11,8 @@ if (!isset($_SESSION['nombre'])) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="../public/bootstrap/bootstrap.min.css">
-  <!-- DATATABLES -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css">
-  <!-- icon -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-
+  <link rel="stylesheet" href="https://rawgit.com/nghuuphuoc/bootstrapvalidator/v0.5.0/vendor/bootstrap/css/bootstrap.css" />
+  <link rel="stylesheet" href="https://rawgit.com/nghuuphuoc/bootstrapvalidator/v0.5.0/dist/css/bootstrapValidator.css" />
   <title>Atrato</title>
 </head>
 
@@ -29,7 +24,6 @@ if (!isset($_SESSION['nombre'])) {
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link active" href="home.php">Inicio<span class="sr-only">(current)</span></a>
-        <a class="nav-item nav-link" href="factura.php">Factura</a>
         <a class="nav-item nav-link" href="../controller/auth.php?op=exit">Salir</a>
       </div>
     </div>

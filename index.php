@@ -17,38 +17,32 @@
   <main class="login-form">
     <div class="cotainer mt-5">
       <div class="row justify-content-center">
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header">Facturacion Electronica</div>
-            <div class="card-body">
-              <!-- actions -->
-              <form id="frmAcceso" method="post" autocomplete="off">
-                <div class="mt-5">
-                  <img src="public/images/logo.png" height="80" height="100" class="rounded mx-auto d-block" alt="no hay imagen">
-                </div>
-                <div class="form-group row mt-5">
-                  <label for="email_address" class="col-md-4 col-form-label text-md-right">Usuario</label>
-                  <div class="col-md-6">
-                    <input type="text" id="username" class="form-control" name="username" autofocus>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <label for="password" class="col-md-4 col-form-label text-md-right">Contraseña</label>
-                  <div class="col-md-6">
-                    <input type="password" id="password" class="form-control" name="password">
-                  </div>
-                </div>
-                <div class="col-md-6 offset-md-4">
-                  <button type="submit" class="btn btn-primary">
-                    Ingresar
-                  </button>
-                </div>
+        <div class="col-md-6">
+          <!-- actions -->
+          <form id="frmAcceso" method="post" autocomplete="off">
+            <div class="mt-5">
+              <img src="public/images/logo.png" height="50" height="50" class="rounded mx-auto d-block" alt="no hay imagen">
             </div>
-            </form>
-          </div>
+            <div class="form-group row mt-5">
+              <label for="email_address" class="col-md-4 col-form-label text-md-right">Usuario</label>
+              <div class="col-md-6">
+                <input type="text" id="username" class="form-control" name="username" autofocus>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label for="password" class="col-md-4 col-form-label text-md-right">Contraseña</label>
+              <div class="col-md-6">
+                <input type="password" id="password" class="form-control" name="password">
+              </div>
+            </div>
+            <div class="col-md-6 offset-md-4">
+              <button type="submit" class="btn btn-primary">
+                Ingresar
+              </button>
+            </div>
         </div>
+        </form>
       </div>
-    </div>
     </div>
   </main>
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>

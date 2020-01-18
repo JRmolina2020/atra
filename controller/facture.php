@@ -1,54 +1,95 @@
 <?php
 require_once "../model/Facture.php";
+require("comprimidos/zipfile.php");
 
 class App
 {
+    public $fac;
+    public $id;
+    public $rspta;
+    public $reg;
+    public $detalle = array();
+    public function __construct()
+    {
+        $this->fac = new Facture();
+        $this->id = 56857;
+        $this->rspta = $this->fac->cabezera($this->id);
+        $this->rsptad = $this->fac->detalle($this->id);
+        $this->reg = $this->rspta->fetch_object();
+    }
+    function detalle()
+    {
+        while ($this->reg = $this->rsptad->fetch_object()) {
+            $this->detalle[] = array(
+                "tipo" => $this->reg->tipo,
+                "marca" => "",
+                "codigo" => $this->reg->codigo,
+                "nombre" => $this->reg->nombre,
+                "cantidad" => $this->reg->cantidad,
+                "impuestos" => array(
+                    array(
+                        "tipo" => "01",
+                        "porcentaje" => 0.0
+                    )
+                ),
+                "descuentos" => array(
+                    array(
+                        "razon" => "Descuento",
+                        "valor" => 0.0,
+                        "codigo" => "00",
+                        "porcentaje" => 0.0
+                    )
+                ),
+                "tipo_gravado" => 1,
+                "valor_referencial" => 0.0,
+                "valor_unitario_bruto" => $this->reg->valor_unitario_bruto,
+                "valor_unitario_sugerido" => 0.0
+            );
+        }
+        return  $this->detalle;
+    }
     function Consultas()
     {
-        $fac = new Facture();
-        $id = 56857;
-        $rspta = $fac->cabezera($id);
-        $reg = $rspta->fetch_object();
         $data = array(
             'nota' => "ATRATO",
-            "numero" => intval($reg->numero),
+            "numero" => intval($this->reg->numero),
             "codigo_empresa" => 80,
-            "tipo_documento" => $reg->tipo_documento,
-            "prefijo" => $reg->prefijo,
-            'fecha_documento' => $reg->fecha_documento,
-            "valor_descuento" =>  $reg->valor_descuento,
+            "tipo_documento" => $this->reg->tipo_documento,
+            "prefijo" => $this->reg->prefijo,
+            'fecha_documento' => $this->reg->fecha_documento,
+            "valor_descuento" =>  $this->reg->valor_descuento,
             "anticipos" => null,
             "valor_ico" => 0.0,
-            "valor_iva" => $reg->valor_iva,
-            "valor_bruto" => $reg->valor_bruto,
-            "valor_neto" => $reg->valor_neto,
-            "metodo_pago" => intval($reg->metodo_pago),
-            "valor_retencion" => $reg->valor_retencion,
+            "valor_iva" => $this->reg->valor_iva,
+            "valor_bruto" => $this->reg->valor_bruto,
+            "valor_neto" => $this->reg->valor_neto,
+            "metodo_pago" => intval($this->reg->metodo_pago),
+            "valor_retencion" => $this->reg->valor_retencion,
             "factura_afectada" => 0,
-            "fecha_expiracion" => $reg->fecha_expiracion,
+            "fecha_expiracion" => $this->reg->fecha_expiracion,
             //CLIENTES ARRAY
             'cliente'     => array(
-                "codigo" => $reg->codigo,
-                "nombres" => $reg->nombres,
-                "apellidos" => $reg->nombres,
-                "departamento" => $reg->departamento,
+                "codigo" => $this->reg->codigo,
+                "nombres" => $this->reg->nombres,
+                "apellidos" => $this->reg->nombres,
+                "departamento" => $this->reg->departamento,
                 "ciudad" => "47960",
-                "barrio" => $reg->barrio,
+                "barrio" => $this->reg->barrio,
                 "correo" => "",
-                "telefono" => $reg->telefono,
-                "direccion" => $reg->direccion,
-                "documento" => $reg->documento,
-                "punto_venta" => $reg->punto_venta,
+                "telefono" => $this->reg->telefono,
+                "direccion" => $this->reg->direccion,
+                "documento" => $this->reg->documento,
+                "punto_venta" => $this->reg->punto_venta,
                 "obligaciones" => ["ZZ"],
-                "razon_social" => $reg->nombres,
-                "punto_venta_nombre" => $reg->punto_venta,
+                "razon_social" => $this->reg->nombres,
+                "punto_venta_nombre" => $this->reg->punto_venta,
                 "tipo_persona" => 1,
                 "codigo_postal" => "000000",
-                "nombre_comercial" => $reg->punto_venta,
+                "nombre_comercial" => $this->reg->punto_venta,
                 "numero_mercantil" => 0,
                 "informacion_tributaria" => "ZZ",
                 //criticos
-                "tipo_regimen" => "48",
+                "tipo_thisimreg->en" => "48",
                 "es_responsable_iva" => false,
                 "tipo_identificacion" => 13,
             ),
@@ -59,7 +100,7 @@ class App
             ),
             'pagos'     => array(
                 array(
-                    "fecha" => $reg->fecha_documento,
+                    "fecha" => $this->reg->fecha_documento,
                     "valor" => 0.0,
                     "metodo_pago" => 1,
                     "detalle_pago" => "ZZZ"
@@ -68,7 +109,7 @@ class App
             'descuentos'     => array(
                 array(
                     "razon" => null,
-                    "valor" => $reg->valor_descuento,
+                    "valor" => $this->reg->valor_descuento,
                     "codigo" => null,
                     "porcentaje" => 0.0
                 )
@@ -78,7 +119,7 @@ class App
                 "zona" => "",
                 "orden" => 0,
                 "asesor" => "",
-                "pedido" => $reg->numero,
+                "pedido" => $this->reg->numero,
                 "canastas" => 0,
                 "planilla" => "",
                 "logistica" => "",
@@ -103,6 +144,10 @@ class App
                 "tipo_documento" => "",
                 "descripcion_razon" => null
             ),
+            //productos
+            'productos'     =>  $this->detalle()
+
+            //end productos
         ); //end
         echo json_encode([$data]);
     }
