@@ -16,7 +16,9 @@ require 'header.php';
             <input name="cargar_archivo" class="btn btn-primary" type="submit" value="Enviar">
         </form>
         <br>
-        <!-- Fin Contenido -->
+        <form method="post" action="../controller/facture.php">
+            <input class="btn btn-danger" type="submit" value="Descargar">
+            <!-- Fin Contenido -->
     </div>
 </div><!-- Fin row -->
 <?php

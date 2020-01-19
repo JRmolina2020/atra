@@ -1,6 +1,6 @@
 <?php
 require_once "../model/Facture.php";
-require("comprimidos/zipfile.php");
+require "comprimidos/zipfile.inc.php";
 
 class App
 {
@@ -8,14 +8,17 @@ class App
     public $id;
     public $rspta;
     public $reg;
+    public $fecha;
     public $detalle = array();
     public function __construct()
     {
         $this->fac = new Facture();
-        $this->id = 56857;
+        $this->id = 56809;
         $this->rspta = $this->fac->cabezera($this->id);
         $this->rsptad = $this->fac->detalle($this->id);
         $this->reg = $this->rspta->fetch_object();
+        //fecha actual prueba
+        $this->fecha = date('Y-m-d');
     }
     function detalle()
     {
@@ -50,13 +53,14 @@ class App
     }
     function Consultas()
     {
+
         $data = array(
             'nota' => "ATRATO",
             "numero" => intval($this->reg->numero),
             "codigo_empresa" => 80,
-            "tipo_documento" => $this->reg->tipo_documento,
-            "prefijo" => $this->reg->prefijo,
-            'fecha_documento' => $this->reg->fecha_documento,
+            "tipo_documento" => "01", //prueba
+            "prefijo" => "A", //valor de prueba
+            'fecha_documento' => $this->fecha, //valor de prueba
             "valor_descuento" =>  $this->reg->valor_descuento,
             "anticipos" => null,
             "valor_ico" => 0.0,
@@ -66,7 +70,7 @@ class App
             "metodo_pago" => intval($this->reg->metodo_pago),
             "valor_retencion" => $this->reg->valor_retencion,
             "factura_afectada" => 0,
-            "fecha_expiracion" => $this->reg->fecha_expiracion,
+            "fecha_expiracion" =>  $this->fecha, //valor de prueba
             //CLIENTES ARRAY
             'cliente'     => array(
                 "codigo" => $this->reg->codigo,
@@ -100,7 +104,7 @@ class App
             ),
             'pagos'     => array(
                 array(
-                    "fecha" => $this->reg->fecha_documento,
+                    "fecha" =>  $this->fecha, //valor de pruba
                     "valor" => 0.0,
                     "metodo_pago" => 1,
                     "detalle_pago" => "ZZZ"
@@ -149,9 +153,17 @@ class App
 
             //end productos
         ); //end
-        echo json_encode([$data]);
+
+        $jstring = (array) json_encode([$data], true);
+        $zipfile = new zipfile();
+        $filedata = implode("", $jstring);
+        $zipfile->add_file($filedata, "factura-" . $this->fecha . ".txt");
+        header("Content-type: application/octet-stream");
+        header("Content-disposition: attachment; filename=factura-" . $this->fecha . ".zip");
+        echo $zipfile->file();
     }
 }
+
 
 $app = new App();
 $app->Consultas();
