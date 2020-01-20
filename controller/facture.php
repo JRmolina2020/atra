@@ -8,20 +8,23 @@ class App
     public $id;
     public $rspta;
     public $reg;
-    public $fecha;
-    public $detalle = array();
+    public $fecha; //fecha actual
+    public $fechac; //fecha consulta parametro
+    public $detalle;
     public function __construct()
     {
         $this->fac = new Facture();
-        $this->id = 56809;
-        $this->rspta = $this->fac->cabezera($this->id);
-        $this->rsptad = $this->fac->detalle($this->id);
+        $this->fechac = "2012-01-03";
+        $this->rspta = $this->fac->cabezera($this->fechac);
         $this->reg = $this->rspta->fetch_object();
         //fecha actual prueba
         $this->fecha = date('Y-m-d');
     }
-    function detalle()
+    function detalle($id)
     {
+        $id = $id;
+        $this->detalle = array();
+        $this->rsptad = $this->fac->detalle($id);
         while ($this->reg = $this->rsptad->fetch_object()) {
             $this->detalle[] = array(
                 "tipo" => $this->reg->tipo,
@@ -49,112 +52,114 @@ class App
                 "valor_unitario_sugerido" => 0.0
             );
         }
-        return  $this->detalle;
+        return ($this->detalle);
     }
     function Consultas()
     {
+        $data = array();
+        while ($this->reg = $this->rspta->fetch_object()) {
+            $data[] = array(
+                'nota' => "ATRATO",
+                "numero" => intval($this->reg->numero),
+                "codigo_empresa" => 80,
+                "tipo_documento" => "01", //prueba
+                "prefijo" => "A", //valor de prueba
+                'fecha_documento' => $this->fecha, //valor de prueba
+                "valor_descuento" =>  $this->reg->valor_descuento,
+                "anticipos" => null,
+                "valor_ico" => 0.0,
+                "valor_iva" => $this->reg->valor_iva,
+                "valor_bruto" => $this->reg->valor_bruto,
+                "valor_neto" => $this->reg->valor_neto,
+                "metodo_pago" => intval($this->reg->metodo_pago),
+                "valor_retencion" => $this->reg->valor_retencion,
+                "factura_afectada" => 0,
+                "fecha_expiracion" =>  $this->fecha, //valor de prueba
+                //CLIENTES ARRAY
+                'cliente'     => array(
+                    "codigo" => $this->reg->codigo,
+                    "nombres" => $this->reg->nombres,
+                    "apellidos" => $this->reg->nombres,
+                    "departamento" => $this->reg->departamento,
+                    "ciudad" => "47960",
+                    "barrio" => $this->reg->barrio,
+                    "correo" => "",
+                    "telefono" => $this->reg->telefono,
+                    "direccion" => $this->reg->direccion,
+                    "documento" => $this->reg->documento,
+                    "punto_venta" => $this->reg->punto_venta,
+                    "obligaciones" => ["ZZ"],
+                    "razon_social" => $this->reg->nombres,
+                    "punto_venta_nombre" => $this->reg->punto_venta,
+                    "tipo_persona" => 1,
+                    "codigo_postal" => "000000",
+                    "nombre_comercial" => $this->reg->punto_venta,
+                    "numero_mercantil" => 0,
+                    "informacion_tributaria" => "ZZ",
+                    //criticos
+                    "tipo_thisimreg->en" => "48",
+                    "es_responsable_iva" => false,
+                    "tipo_identificacion" => 13,
+                ),
+                'factura'     => array(
+                    "moneda" => null,
+                    "subtipo_factura" => "10",
+                    "intercambio_acordado" => 0.0
+                ),
+                'pagos'     => array(
+                    array(
+                        "fecha" =>  $this->fecha, //valor de pruba
+                        "valor" => 0.0,
+                        "metodo_pago" => 1,
+                        "detalle_pago" => "ZZZ"
+                    )
+                ),
+                'descuentos'     => array(
+                    array(
+                        "razon" => null,
+                        "valor" => $this->reg->valor_descuento,
+                        "codigo" => null,
+                        "porcentaje" => 0.0
+                    )
+                ),
+                'extensibles'     => array(
+                    "peso" => 0.0,
+                    "zona" => "",
+                    "orden" => 0,
+                    "asesor" => "",
+                    "pedido" => $this->reg->numero,
+                    "canastas" => 0,
+                    "planilla" => "",
+                    "logistica" => "",
+                    "recibo_caja" => 0.0,
+                    "distribucion" => "",
+                    "asesor_numero" => 0,
+                    "logistica_numero" => 0,
+                    "cantidad_productos" => 0,
+                    "distribucion_numero" => 0
+                ),
+                'nota_debito'     => array(
+                    "razon" => 0,
+                    "factura" => null,
+                    "id_felam" => 0,
+                    "tipo_documento" => "",
+                    "descripcion_razon" => null
+                ),
+                'nota_credito'     => array(
+                    "razon" => 0,
+                    "factura" => null,
+                    "id_felam" => 0,
+                    "tipo_documento" => "",
+                    "descripcion_razon" => null
+                ),
+                //productos
+                'productos'     =>  $this->detalle($this->reg->numero)
+            );
+        }
+        //end productos
+        //echo json_encode($data);
 
-        $data = array(
-            'nota' => "ATRATO",
-            "numero" => intval($this->reg->numero),
-            "codigo_empresa" => 80,
-            "tipo_documento" => "01", //prueba
-            "prefijo" => "A", //valor de prueba
-            'fecha_documento' => $this->fecha, //valor de prueba
-            "valor_descuento" =>  $this->reg->valor_descuento,
-            "anticipos" => null,
-            "valor_ico" => 0.0,
-            "valor_iva" => $this->reg->valor_iva,
-            "valor_bruto" => $this->reg->valor_bruto,
-            "valor_neto" => $this->reg->valor_neto,
-            "metodo_pago" => intval($this->reg->metodo_pago),
-            "valor_retencion" => $this->reg->valor_retencion,
-            "factura_afectada" => 0,
-            "fecha_expiracion" =>  $this->fecha, //valor de prueba
-            //CLIENTES ARRAY
-            'cliente'     => array(
-                "codigo" => $this->reg->codigo,
-                "nombres" => $this->reg->nombres,
-                "apellidos" => $this->reg->nombres,
-                "departamento" => $this->reg->departamento,
-                "ciudad" => "47960",
-                "barrio" => $this->reg->barrio,
-                "correo" => "",
-                "telefono" => $this->reg->telefono,
-                "direccion" => $this->reg->direccion,
-                "documento" => $this->reg->documento,
-                "punto_venta" => $this->reg->punto_venta,
-                "obligaciones" => ["ZZ"],
-                "razon_social" => $this->reg->nombres,
-                "punto_venta_nombre" => $this->reg->punto_venta,
-                "tipo_persona" => 1,
-                "codigo_postal" => "000000",
-                "nombre_comercial" => $this->reg->punto_venta,
-                "numero_mercantil" => 0,
-                "informacion_tributaria" => "ZZ",
-                //criticos
-                "tipo_thisimreg->en" => "48",
-                "es_responsable_iva" => false,
-                "tipo_identificacion" => 13,
-            ),
-            'factura'     => array(
-                "moneda" => null,
-                "subtipo_factura" => "10",
-                "intercambio_acordado" => 0.0
-            ),
-            'pagos'     => array(
-                array(
-                    "fecha" =>  $this->fecha, //valor de pruba
-                    "valor" => 0.0,
-                    "metodo_pago" => 1,
-                    "detalle_pago" => "ZZZ"
-                )
-            ),
-            'descuentos'     => array(
-                array(
-                    "razon" => null,
-                    "valor" => $this->reg->valor_descuento,
-                    "codigo" => null,
-                    "porcentaje" => 0.0
-                )
-            ),
-            'extensibles'     => array(
-                "peso" => 0.0,
-                "zona" => "",
-                "orden" => 0,
-                "asesor" => "",
-                "pedido" => $this->reg->numero,
-                "canastas" => 0,
-                "planilla" => "",
-                "logistica" => "",
-                "recibo_caja" => 0.0,
-                "distribucion" => "",
-                "asesor_numero" => 0,
-                "logistica_numero" => 0,
-                "cantidad_productos" => 0,
-                "distribucion_numero" => 0
-            ),
-            'nota_debito'     => array(
-                "razon" => 0,
-                "factura" => null,
-                "id_felam" => 0,
-                "tipo_documento" => "",
-                "descripcion_razon" => null
-            ),
-            'nota_credito'     => array(
-                "razon" => 0,
-                "factura" => null,
-                "id_felam" => 0,
-                "tipo_documento" => "",
-                "descripcion_razon" => null
-            ),
-            //productos
-            'productos'     =>  $this->detalle()
-
-            //end productos
-        ); //end
-
-        $jstring = (array) json_encode([$data], true);
+        $jstring = (array) json_encode($data, true);
         $zipfile = new zipfile();
         $filedata = implode("", $jstring);
         $zipfile->add_file($filedata, "factura-" . $this->fecha . ".txt");

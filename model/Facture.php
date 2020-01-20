@@ -19,7 +19,7 @@ class Facture
         return ejecutarConsulta($sql);
     }
 
-    public function cabezera($id)
+    public function cabezera($fecha)
     {
         $sql = "SELECT FEC_COMPRA as fecha_documento, IDTIPO as tipo_documento,prefijo, 
         V.ID as numero,V.IDFORMPAGO as metodo_pago,SUBTOTAL as valor_bruto, 
@@ -33,7 +33,7 @@ class Facture
         ON C.BARRIO = B.codigo 
         INNER JOIN tipos_facturas TP
         ON V.IDTIPO = TP.ID 
-        WHERE V.ID = '$id'";
+        WHERE V.FEC_COMPRA = '$fecha'";
         return ejecutarConsulta($sql);
     }
     public function detalle($id)
