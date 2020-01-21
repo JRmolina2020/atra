@@ -1,24 +1,28 @@
 <?php
-require_once "../model/Facture.php";
-require "comprimidos/zipfile.inc.php";
 
+require_once "../model/Facture.php";
+require "inc/zipfile.inc.php";
+require "authapi.php";
 class App
 {
     public $fac;
     public $id;
     public $rspta;
     public $reg;
-    public $fecha; //fecha actual
+    public $fecha; //fecha actual.zip
     public $fechac; //fecha consulta parametro
     public $detalle;
     public function __construct()
     {
         $this->fac = new Facture();
-        $this->fechac = "2012-01-03";
+        //parametro para la consulta por fecha
+        $this->fechac = "2012-02-01";
         $this->rspta = $this->fac->cabezera($this->fechac);
-        $this->reg = $this->rspta->fetch_object();
-        //fecha actual prueba
-        $this->fecha = date('Y-m-d');
+        //
+        //obtener fecha actual para el nombre del .zip
+        date_default_timezone_set("America/Bogota");
+        $this->fecha = date("Y-m-d");
+        //end
     }
     function detalle($id)
     {
@@ -27,7 +31,7 @@ class App
         $this->rsptad = $this->fac->detalle($id);
         while ($this->reg = $this->rsptad->fetch_object()) {
             $this->detalle[] = array(
-                "tipo" => $this->reg->tipo,
+                "tipo" => "1",
                 "marca" => "",
                 "codigo" => $this->reg->codigo,
                 "nombre" => $this->reg->nombre,
@@ -63,7 +67,7 @@ class App
                 "numero" => intval($this->reg->numero),
                 "codigo_empresa" => 80,
                 "tipo_documento" => "01", //prueba
-                "prefijo" => "A", //valor de prueba
+                "prefijo" => $this->reg->prefijo,
                 'fecha_documento' => $this->fecha, //valor de prueba
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
@@ -87,19 +91,20 @@ class App
                     "telefono" => $this->reg->telefono,
                     "direccion" => $this->reg->direccion,
                     "documento" => $this->reg->documento,
-                    "punto_venta" => $this->reg->punto_venta,
+                    "punto_venta" => 000 + $this->reg->codigo,
                     "obligaciones" => ["ZZ"],
                     "razon_social" => $this->reg->nombres,
                     "punto_venta_nombre" => $this->reg->punto_venta,
-                    "tipo_persona" => 1,
                     "codigo_postal" => "000000",
                     "nombre_comercial" => $this->reg->punto_venta,
                     "numero_mercantil" => 0,
                     "informacion_tributaria" => "ZZ",
                     //criticos
-                    "tipo_thisimreg->en" => "48",
+                    "tipo_persona" => 1,
+                    "tipo_regimen" => "48",
                     "es_responsable_iva" => false,
                     "tipo_identificacion" => 13,
+                    //End criticos
                 ),
                 'factura'     => array(
                     "moneda" => null,
@@ -108,7 +113,7 @@ class App
                 ),
                 'pagos'     => array(
                     array(
-                        "fecha" =>  $this->fecha, //valor de pruba
+                        "fecha" =>  $this->fechac, //valor de pruba
                         "valor" => 0.0,
                         "metodo_pago" => 1,
                         "detalle_pago" => "ZZZ"
@@ -158,17 +163,18 @@ class App
         }
         //end productos
         //echo json_encode($data);
-
-        $jstring = (array) json_encode($data, true);
-        $zipfile = new zipfile();
-        $filedata = implode("", $jstring);
-        $zipfile->add_file($filedata, "factura-" . $this->fecha . ".txt");
-        header("Content-type: application/octet-stream");
-        header("Content-disposition: attachment; filename=factura-" . $this->fecha . ".zip");
-        echo $zipfile->file();
+        $jstring =  json_encode($data, true);
+        $zip = new ZipArchive();
+        $filename = "archivo-" . $this->fecha . ".zip";
+        if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+            exit("cannot open <$filename>\n");
+        }
+        $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+        $zip->close();
+        $api = new Login();
+        $api->Uploader($filename);
     }
 }
-
 
 $app = new App();
 $app->Consultas();
