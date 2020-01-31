@@ -17,7 +17,7 @@ class App
         $this->fac = new Facture();
         //parametro para la consulta por fecha
         $this->fechac = isset($_POST["fecha"]) ? ($_POST["fecha"]) : "";
-        $this->rspta = $this->fac->cabezera($this->fechac);
+        $this->rspta = $this->fac->notacredito($this->fechac);
 
         date_default_timezone_set("America/Bogota");
         $this->fecha = date("Y-m-d");
@@ -80,31 +80,24 @@ class App
                 $telefono = substr($this->reg->telefono, 0, 10);
             }
 
-            if (
-                $this->reg->metodo_pago == 1 || $this->reg->metodo_pago == 13
-                || $this->reg->metodo_pago == 8
-            ) {
-                $metodo_pago = 1;
-            } else {
-                $metodo_pago = 2;
+            if ($this->reg->tipo_documento == 3 || $this->reg->tipo_documento == 6) {
+                $tipo_documento = 91;
             }
-            //quintando prefijo al numero de la factura
-            $numero = preg_replace('/[^0-9]/', '', $this->reg->numero);
             //end validaciones
             $data[] = array(
                 'nota' => "ATRATO",
-                "numero" => $numero,
+                "numero" => $this->reg->consecutivo,
                 "codigo_empresa" => 80,
-                "tipo_documento" => '01',
+                "tipo_documento" => $tipo_documento,
                 "prefijo" => $this->reg->prefijo,
                 'fecha_documento' =>  "2019-12-06",
-                "valor_descuento" =>  $this->reg->valor_descuento,
+                "valor_descuento" =>  0,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
                 "valor_iva" => $this->reg->valor_iva,
                 "valor_bruto" => $this->reg->valor_bruto,
                 "valor_neto" => $this->reg->valor_neto,
-                "metodo_pago" => $metodo_pago,
+                "metodo_pago" => 1,
                 "valor_retencion" => $this->reg->valor_retencion,
                 "factura_afectada" => 0,
                 "fecha_expiracion" =>  $this->reg->fecha_expiracion,
@@ -143,14 +136,14 @@ class App
                     array(
                         "fecha" =>  $this->reg->fecha_documento,
                         "valor" => 0.0,
-                        "metodo_pago" => $metodo_pago,
+                        "metodo_pago" => 1,
                         "detalle_pago" => "ZZZ"
                     )
                 ),
                 'descuentos'     => array(
                     array(
                         "razon" => null,
-                        "valor" => $this->reg->valor_descuento,
+                        "valor" => 0,
                         "codigo" => null,
                         "porcentaje" => 0.0
                     )
@@ -192,21 +185,22 @@ class App
             );
         }
         //end productos
+
         if (empty($data)) {
-            header("Location: ../view/errfacture.php");;
+            header("Location: ../view/errnote.php");;
             die();
         } else {
-            //echo json_encode($data);
-            $jstring =  json_encode($data, true);
-            $zip = new ZipArchive();
-            $filename = "archivo-" . $this->fecha . ".zip";
-            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-                exit("cannot open <$filename>\n");
-            }
-            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            $zip->close();
-            $api = new Login();
-            $api->Uploader($filename);
+            echo json_encode($data);
+            // $jstring =  json_encode($data, true);
+            // $zip = new ZipArchive();
+            // $filename = "archivo-" . $this->fecha . ".zip";
+            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+            //     exit("cannot open <$filename>\n");
+            // }
+            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            // $zip->close();
+            // $api = new Login();
+            // $api->Uploader($filename);
         }
     }
 }

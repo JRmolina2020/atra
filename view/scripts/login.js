@@ -15,7 +15,7 @@ function validar_mensaje() {
       function(data) {
         data = JSON.parse(data);
         if (data != null) {
-          $(location).attr("href", "view/home.php");
+          $(location).attr("href", "view/index.php");
         } else {
           Swal.fire({
             icon: "error",

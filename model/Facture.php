@@ -21,19 +21,60 @@ class Facture
 
     public function cabezera($fecha)
     {
-        $sql = "SELECT FEC_COMPRA as fecha_documento, IDTIPO as tipo_documento,prefijo, 
-        V.ID as numero,V.IDFORMPAGO as metodo_pago,SUBTOTAL as valor_bruto, 
-        V.IVA as valor_iva,RETEFUENTE as valor_retencion,DCTO as valor_descuento, V.TOTAL as valor_neto,
-        FEC_VENC as fecha_expiracion,C.CODIGO as codigo,C.REPRESENTANTE as nombres , 
-        C.CIUDAD AS ciudad,B.nombre AS barrio,C.TELEFONOS as telefono,C.DIRECCION AS direccion,
-        C.ID as documento, C.EMPRESA as punto_venta,C.DPTO as departamento,c.cliente as tipo_persona 
-        FROM ventas V INNER JOIN clientes C 
+        $sql = "SELECT 
+        V.ID as IDF, V.NOFACTURA AS 'numero',V.FEC_COMPRA as fecha_documento,prefijo,
+        V.NOFACTURA as facturap,V.PEDIDO as pedido, 
+        V.IDFORMPAGO as metodo_pago,
+        V.SUBTOTAL as valor_bruto, V.IVA as valor_iva,
+        V.RETEFUENTE as valor_retencion,DCTO as valor_descuento, 
+        V.TOTAL as valor_neto,V.FEC_VENC as fecha_expiracion,C.CODIGO as codigo,
+        C.NIT as nit ,C.REPRESENTANTE as nombres ,C.tipo_regimen as tipo_regimen,
+        CI.CODDIAN as ciudad,B.nombre as barrio,
+        C.TELEFONOS as telefono,C.DIRECCION AS direccion,
+        C.ID as documento, C.EMPRESA as punto_venta,
+        C.DPTO as departamento,c.cliente as tipo_persona,U.NOMBRE AS asesor
+        FROM ventas V 
+        INNER JOIN clientes C 
         ON V.TERCERO = C.CODIGO 
-        INNER JOIN barrios B 
+        LEFT JOIN barrios B 
         ON C.BARRIO = B.codigo 
         INNER JOIN tipos_facturas TP
         ON V.IDTIPO = TP.ID 
-        WHERE V.FEC_COMPRA = '$fecha'";
+        INNER JOIN usuarios U
+        ON U.USUARIO = V.VENDEDOR
+        INNER JOIN ciudades CI
+        ON CI.CODIGO = C.CIUDAD
+        WHERE   V.FEC_COMPRA = '$fecha'";
+        return ejecutarConsulta($sql);
+    }
+    public function notacredito($fecha)
+    {
+        $sql = "SELECT 
+        V.ID as IDF,CO.CONSECUTIVO as consecutivo,CO.FEC_COMPRA as fecha_documento, 
+         CO.IDTIPO as tipo_documento,prefijo,
+        CO.NOFACTURA as facturap,V.PEDIDO as pedido, 
+        CO.SUBTOTAL as valor_bruto, CO.IVA as valor_iva,
+        CO.RETEFUENTE as valor_retencion, 
+         CO.TOTAL as valor_neto,CO.FEC_VENC as fecha_expiracion,
+         C.CODIGO as codigo,C.NIT as nit ,C.REPRESENTANTE as nombres ,C.tipo_regimen as tipo_regimen,
+        CI.CODDIAN as ciudad,B.nombre as barrio,
+        C.TELEFONOS as telefono,C.DIRECCION AS direccion,
+        C.ID as documento, C.EMPRESA as punto_venta,
+        C.DPTO as departamento,c.cliente as tipo_persona,U.NOMBRE AS asesor
+        FROM ventas V 
+        INNER JOIN clientes C 
+        ON V.TERCERO = C.CODIGO 
+        LEFT JOIN barrios B 
+        ON C.BARRIO = B.codigo 
+        LEFT JOIN compras CO
+        ON V.NOFACTURA = CO.NOFACTURA
+        INNER JOIN tipos_facturas TP
+        ON V.IDTIPO = TP.ID 
+        INNER JOIN usuarios U
+        ON U.USUARIO = V.VENDEDOR
+        INNER JOIN ciudades CI
+        ON CI.CODIGO = C.CIUDAD
+        WHERE CO.FEC_COMPRA  = '$fecha'";
         return ejecutarConsulta($sql);
     }
     public function detalle($id)
