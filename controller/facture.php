@@ -28,20 +28,30 @@ class App
         $this->detalle = array();
         $this->rsptad = $this->fac->detalle($id);
         while ($this->reg = $this->rsptad->fetch_object()) {
-            if (
-                $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
-                || $this->reg->valor_unitario_bruto == 0
-            ) {
-                $valor_unitario_bruto = 0.01;
+
+            //VALIDANDO CANTIDAD
+            if ($this->reg->cantidad == 0) {
+                $cantidad = $this->reg->caja;
+                $valor_unitario_bruto = $this->reg->valor_caja;
             } else {
-                $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
+                $cantidad = $this->reg->cantidad;
+                if (
+                    $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
+                    || $this->reg->valor_unitario_bruto == 0
+                ) {
+                    $valor_unitario_bruto = 100;
+                } else {
+                    $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
+                }
             }
+
+            //END
             $this->detalle[] = array(
                 "tipo" => "1",
                 "marca" => "",
                 "codigo" => $this->reg->codigo,
                 "nombre" => $this->reg->nombre,
-                "cantidad" => $this->reg->cantidad,
+                "cantidad" => $cantidad,
                 "impuestos" => array(
                     array(
                         "tipo" => "01",
@@ -80,6 +90,8 @@ class App
                 $telefono = substr($this->reg->telefono, 0, 10);
             }
 
+            //validando metodo de pago
+
             if (
                 $this->reg->metodo_pago == 1 || $this->reg->metodo_pago == 13
                 || $this->reg->metodo_pago == 8
@@ -88,6 +100,19 @@ class App
             } else {
                 $metodo_pago = 2;
             }
+            //validando tipo de regimen
+            if ($this->reg->tipo_regimen == null) {
+                $tipo_regimen = 49;
+            } else {
+                $tipo_regimen = $this->reg->tipo_regimen;
+            }
+            //validando departamento
+            if ($this->reg->departamento == null) {
+                $departamento = 20;
+            } else {
+                $departamento = $this->reg->departamento;
+            }
+
             //quintando prefijo al numero de la factura
             $numero = preg_replace('/[^0-9]/', '', $this->reg->numero);
             //end validaciones
@@ -97,7 +122,7 @@ class App
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
                 "prefijo" => $this->reg->prefijo,
-                'fecha_documento' =>  "2019-12-06",
+                'fecha_documento' => '2019-12-11',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -113,7 +138,7 @@ class App
                     "codigo" => $this->reg->nit,
                     "nombres" => $this->reg->nombres,
                     "apellidos" => $this->reg->nombres,
-                    "departamento" => $this->reg->departamento,
+                    "departamento" => $departamento,
                     "ciudad" => $ciudad,
                     "barrio" => $this->reg->barrio,
                     "correo" => "",
@@ -129,7 +154,7 @@ class App
                     "numero_mercantil" => 0,
                     "informacion_tributaria" => "ZZ",
                     "tipo_persona" => 1,
-                    "tipo_regimen" => $this->reg->tipo_regimen,
+                    "tipo_regimen" => $tipo_regimen,
                     "es_responsable_iva" => false,
                     "tipo_identificacion" => 13,
 

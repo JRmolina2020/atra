@@ -36,12 +36,29 @@ class App
             } else {
                 $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
             }
+
+            //VALIDANDO CANTIDAD
+            if ($this->reg->cantidad == 0) {
+                $cantidad = $this->reg->caja;
+                $valor_unitario_bruto = $this->reg->valor_caja;
+            } else {
+                $cantidad = $this->reg->cantidad;
+                if (
+                    $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
+                    || $this->reg->valor_unitario_bruto == 0
+                ) {
+                    $valor_unitario_bruto = 100;
+                } else {
+                    $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
+                }
+            }
+            //END
             $this->detalle[] = array(
                 "tipo" => "1",
                 "marca" => "",
                 "codigo" => $this->reg->codigo,
                 "nombre" => $this->reg->nombre,
-                "cantidad" => $this->reg->cantidad,
+                "cantidad" => $cantidad,
                 "impuestos" => array(
                     array(
                         "tipo" => "01",
@@ -83,6 +100,19 @@ class App
             if ($this->reg->tipo_documento == 3 || $this->reg->tipo_documento == 6) {
                 $tipo_documento = 91;
             }
+
+
+            if ($this->reg->tipo_regimen == null) {
+                $tipo_regimen = 49;
+            } else {
+                $tipo_regimen = $this->reg->tipo_regimen;
+            }
+            if ($this->reg->departamento == null) {
+                $departamento = 20;
+            } else {
+                $departamento = $this->reg->departamento;
+            }
+
             //end validaciones
             $data[] = array(
                 'nota' => "ATRATO",
@@ -90,7 +120,7 @@ class App
                 "codigo_empresa" => 80,
                 "tipo_documento" => $tipo_documento,
                 "prefijo" => $this->reg->prefijo,
-                'fecha_documento' =>  "2019-12-06",
+                'fecha_documento' =>  $this->reg->fecha_documento,
                 "valor_descuento" =>  0,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -106,7 +136,7 @@ class App
                     "codigo" => $this->reg->nit,
                     "nombres" => $this->reg->nombres,
                     "apellidos" => $this->reg->nombres,
-                    "departamento" => $this->reg->departamento,
+                    "departamento" => $departamento,
                     "ciudad" => $ciudad,
                     "barrio" => $this->reg->barrio,
                     "correo" => "",
@@ -122,7 +152,7 @@ class App
                     "numero_mercantil" => 0,
                     "informacion_tributaria" => "ZZ",
                     "tipo_persona" => 1,
-                    "tipo_regimen" => $this->reg->tipo_regimen,
+                    "tipo_regimen" => $tipo_regimen,
                     "es_responsable_iva" => false,
                     "tipo_identificacion" => 13,
 
@@ -190,17 +220,17 @@ class App
             header("Location: ../view/errnote.php");;
             die();
         } else {
-            echo json_encode($data);
-            // $jstring =  json_encode($data, true);
-            // $zip = new ZipArchive();
-            // $filename = "archivo-" . $this->fecha . ".zip";
-            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-            //     exit("cannot open <$filename>\n");
-            // }
-            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            // $zip->close();
-            // $api = new Login();
-            // $api->Uploader($filename);
+            // echo json_encode($data);
+            $jstring =  json_encode($data, true);
+            $zip = new ZipArchive();
+            $filename = "archivo-" . $this->fecha . ".zip";
+            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+                exit("cannot open <$filename>\n");
+            }
+            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            $zip->close();
+            $api = new Login();
+            $api->Uploader($filename);
         }
     }
 }

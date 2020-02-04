@@ -3,7 +3,7 @@
 //IP DE LA PC SERVIDOR DE BASE DE DATOS
 define("DB_HOST", "localhost");
 // NOMBRE DE LA BD
-define("DB_NAME", "atrato2020#1");
+define("DB_NAME", "atrato2020#5");
 // NOMBRE DEL USUARIO DE LA BASE DE DATOS
 define("DB_USERNAME", "root");
 // CONTRASEÑA POR DEFECTO DEL USUARIO

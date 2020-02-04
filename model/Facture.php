@@ -79,9 +79,10 @@ class Facture
     }
     public function detalle($id)
     {
-        $sql = "SELECT P.IDMARCA as tipo,P.CODIGO as codigo,P.NOMBRE as nombre,VD.CANT_EMPAQ as cantidad ,
+        $sql = "SELECT P.IDMARCA as tipo,P.CODIGO as codigo,P.NOMBRE as nombre,VD.UNID as cantidad ,VD.CAJA as caja,
+        VD.VRCAJA as valor_caja,
         VD.VRUNITARIO  as valor_referencial,VD.VRUNITARIO as valor_unitario_bruto, VD.TOTAL as subtotal,
-        VD.IVA as iva,VD.DESCUENTOA as descuento
+        VD.IVA as iva,VD.DESCUENTOB as descuento
         FROM ventas_detalles VD
         INNER JOIN productos P 
         ON VD.IDPROD = P.REFERENCIA
