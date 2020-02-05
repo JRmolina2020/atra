@@ -22,17 +22,17 @@ class Facture
     public function cabezera($fecha)
     {
         $sql = "SELECT 
-        V.ID as IDF, V.NOFACTURA AS 'numero',V.FEC_COMPRA as fecha_documento,prefijo,
+        V.ID as IDF, V.NOFACTURA as numero,V.FEC_COMPRA as fecha_documento,prefijo,
         V.NOFACTURA as facturap,V.PEDIDO as pedido, 
-        V.IDFORMPAGO as metodo_pago,
+        V.IDFORMPAGO as metodo_pago, FO.DESCRIPCION AS manera_pago,
         V.SUBTOTAL as valor_bruto, V.IVA as valor_iva,
         V.RETEFUENTE as valor_retencion,DCTO as valor_descuento, 
         V.TOTAL as valor_neto,V.FEC_VENC as fecha_expiracion,C.CODIGO as codigo,
         C.NIT as nit ,C.REPRESENTANTE as nombres ,C.tipo_regimen as tipo_regimen,
         CI.CODDIAN as ciudad,B.nombre as barrio,
-        C.TELEFONOS as telefono,C.DIRECCION AS direccion,
+        C.TELEFONOS as telefono,C.DIRECCION as direccion,
         C.ID as documento, C.EMPRESA as punto_venta,
-        C.DPTO as departamento,c.cliente as tipo_persona,U.NOMBRE AS asesor
+        C.DPTO as departamento,c.cliente as tipo_persona,U.NOMBRE as asesor
         FROM ventas V 
         INNER JOIN clientes C 
         ON V.TERCERO = C.CODIGO 
@@ -44,6 +44,8 @@ class Facture
         ON U.USUARIO = V.VENDEDOR
         INNER JOIN ciudades CI
         ON CI.CODIGO = C.CIUDAD
+        INNER JOIN formas_pagos FO
+        ON FO.ID = V.IDFORMPAGO
         WHERE   V.FEC_COMPRA = '$fecha'";
         return ejecutarConsulta($sql);
     }
@@ -51,16 +53,16 @@ class Facture
     {
         $sql = "SELECT 
         V.ID as IDF,CO.CONSECUTIVO as consecutivo,CO.FEC_COMPRA as fecha_documento, 
-         CO.IDTIPO as tipo_documento,prefijo,
+        CO.IDTIPO as tipo_documento,prefijo,FO.DESCRIPCION AS manera_pago,
         CO.NOFACTURA as facturap,V.PEDIDO as pedido, 
         CO.SUBTOTAL as valor_bruto, CO.IVA as valor_iva,
         CO.RETEFUENTE as valor_retencion, 
-         CO.TOTAL as valor_neto,CO.FEC_VENC as fecha_expiracion,
-         C.CODIGO as codigo,C.NIT as nit ,C.REPRESENTANTE as nombres ,C.tipo_regimen as tipo_regimen,
+        CO.TOTAL as valor_neto,CO.FEC_VENC as fecha_expiracion,
+        C.CODIGO as codigo,C.NIT as nit ,C.REPRESENTANTE as nombres ,C.tipo_regimen as tipo_regimen,
         CI.CODDIAN as ciudad,B.nombre as barrio,
         C.TELEFONOS as telefono,C.DIRECCION AS direccion,
         C.ID as documento, C.EMPRESA as punto_venta,
-        C.DPTO as departamento,c.cliente as tipo_persona,U.NOMBRE AS asesor
+        C.DPTO as departamento,c.cliente as tipo_persona,U.NOMBRE as asesor
         FROM ventas V 
         INNER JOIN clientes C 
         ON V.TERCERO = C.CODIGO 
@@ -74,6 +76,8 @@ class Facture
         ON U.USUARIO = V.VENDEDOR
         INNER JOIN ciudades CI
         ON CI.CODIGO = C.CIUDAD
+        INNER JOIN formas_pagos FO
+        ON FO.ID = V.IDFORMPAGO
         WHERE CO.FEC_COMPRA  = '$fecha'";
         return ejecutarConsulta($sql);
     }
@@ -81,8 +85,9 @@ class Facture
     {
         $sql = "SELECT P.IDMARCA as tipo,P.CODIGO as codigo,P.NOMBRE as nombre,VD.UNID as cantidad ,VD.CAJA as caja,
         VD.VRCAJA as valor_caja,
+        VD.IDBODEGA as bodega,
         VD.VRUNITARIO  as valor_referencial,VD.VRUNITARIO as valor_unitario_bruto, VD.TOTAL as subtotal,
-        VD.IVA as iva,VD.DESCUENTOB as descuento
+        VD.IVA as iva,VD.DESCUENTOA AS descuentoA,VD.DESCUENTOB as descuentoB
         FROM ventas_detalles VD
         INNER JOIN productos P 
         ON VD.IDPROD = P.REFERENCIA

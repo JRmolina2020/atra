@@ -11,7 +11,7 @@ class User
 
 	public function login($username, $password)
 	{
-		$sql = "SELECT id,nombre FROM usuarios WHERE usuario='$username' AND clave='$password' AND permisof='1'";
+		$sql = "SELECT id,nombre FROM usuarios WHERE usuario='$username' AND clave='$password' ";
 		return ejecutarConsulta($sql);
 	}
 }

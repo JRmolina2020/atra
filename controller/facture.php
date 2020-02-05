@@ -12,13 +12,19 @@ class App
     public $fecha; //fecha actual.zip
     public $fechac; //fecha consulta parametro
     public $detalle;
+
+    //variables globales para producto
+    public $tipo; //tipo_producto
+    public $descuento;
+
     public function __construct()
     {
         $this->fac = new Facture();
         //parametro para la consulta por fecha
         $this->fechac = isset($_POST["fecha"]) ? ($_POST["fecha"]) : "";
         $this->rspta = $this->fac->cabezera($this->fechac);
-
+        $this->tipo = 1;
+        $this->descuento = 0;
         date_default_timezone_set("America/Bogota");
         $this->fecha = date("Y-m-d");
     }
@@ -33,21 +39,26 @@ class App
             if ($this->reg->cantidad == 0) {
                 $cantidad = $this->reg->caja;
                 $valor_unitario_bruto = $this->reg->valor_caja;
+                $embalaje = 'caja';
             } else {
                 $cantidad = $this->reg->cantidad;
+                $embalaje = 'und';
                 if (
                     $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
                     || $this->reg->valor_unitario_bruto == 0
                 ) {
-                    $valor_unitario_bruto = 100;
+                    $valor_unitario_bruto = 0.01;
+                    $this->tipo = 4; //tipo de producto
+                    $this->descuento = 0; //descuento del producto
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
+                    $this->tipo = 1;
+                    $this->descuento = $this->reg->descuentoB;
                 }
             }
-
             //END
             $this->detalle[] = array(
-                "tipo" => "1",
+                "tipo" => $this->tipo,
                 "marca" => "",
                 "codigo" => $this->reg->codigo,
                 "nombre" => $this->reg->nombre,
@@ -61,11 +72,20 @@ class App
                 "descuentos" => array(
                     array(
                         "razon" => "Descuento",
-                        "valor" => $this->reg->descuento,
+                        "valor" => $this->reg->descuentoB,
                         "codigo" => "00",
                         "porcentaje" => 0.0
                     )
                 ),
+                "extensibles" =>
+                array(
+                    "tipo_embalaje" => "",
+                    "tipo_empaque" => $embalaje,
+                    "bodega" => $this->reg->bodega,
+                    "descuentoA" => $this->reg->descuentoA
+
+                ),
+
                 "tipo_gravado" => 1,
                 "valor_referencial" => 0.0,
                 "valor_unitario_bruto" => $valor_unitario_bruto,
@@ -87,18 +107,16 @@ class App
             if ($this->reg->telefono == "" || $this->reg->telefono == 0 || $this->reg->telefono == 1) {
                 $telefono = 11111111;
             } else {
-                $telefono = substr($this->reg->telefono, 0, 10);
+                $telefono = substr($this->reg->telefono, 0, 10); //recortando telefonos a 10 digitos
             }
-
             //validando metodo de pago
-
             if (
                 $this->reg->metodo_pago == 1 || $this->reg->metodo_pago == 13
                 || $this->reg->metodo_pago == 8
             ) {
-                $metodo_pago = 1;
+                $metodo_pago = 1; //contado
             } else {
-                $metodo_pago = 2;
+                $metodo_pago = 2; //credito
             }
             //validando tipo de regimen
             if ($this->reg->tipo_regimen == null) {
@@ -112,17 +130,21 @@ class App
             } else {
                 $departamento = $this->reg->departamento;
             }
-
             //quintando prefijo al numero de la factura
             $numero = preg_replace('/[^0-9]/', '', $this->reg->numero);
+            //validando nit
+            $nit  = str_replace('.', '', $this->reg->nit);
+            $nit = preg_replace('/-/', '', $nit);
+            $nit = substr($nit, 0, 10);
             //end validaciones
+
             $data[] = array(
-                'nota' => "ATRATO",
+                "nota" => $this->reg->manera_pago,
                 "numero" => $numero,
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
-                "prefijo" => $this->reg->prefijo,
-                'fecha_documento' => '2019-12-11',
+                "prefijo" => 'SETT',
+                'fecha_documento' => '2020-02-03',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -135,7 +157,7 @@ class App
                 "fecha_expiracion" =>  $this->reg->fecha_expiracion,
                 //CLIENTES ARRAY
                 'cliente'     => array(
-                    "codigo" => $this->reg->nit,
+                    "codigo" => $this->reg->codigo,
                     "nombres" => $this->reg->nombres,
                     "apellidos" => $this->reg->nombres,
                     "departamento" => $departamento,
@@ -144,7 +166,7 @@ class App
                     "correo" => "",
                     "telefono" => intval($telefono),
                     "direccion" => $this->reg->direccion,
-                    "documento" => $this->reg->documento,
+                    "documento" => $nit,
                     "punto_venta" =>  $this->reg->codigo,
                     "obligaciones" => ["ZZ"],
                     "razon_social" => $this->reg->nombres,
@@ -169,7 +191,7 @@ class App
                         "fecha" =>  $this->reg->fecha_documento,
                         "valor" => 0.0,
                         "metodo_pago" => $metodo_pago,
-                        "detalle_pago" => "ZZZ"
+                        "detalle_pago" => "ZZZ",
                     )
                 ),
                 'descuentos'     => array(
@@ -182,7 +204,7 @@ class App
                 ),
                 'extensibles'     => array(
                     "peso" => 0.0,
-                    "zona" => "",
+                    "zona" => '',
                     "orden" => 0,
                     "asesor" => $this->reg->asesor,
                     "pedido" => $this->reg->pedido,
@@ -195,6 +217,7 @@ class App
                     "logistica_numero" => 0,
                     "cantidad_productos" => 0,
                     "distribucion_numero" => 0
+
                 ),
                 'nota_debito'     => array(
                     "razon" => 4,
@@ -216,22 +239,21 @@ class App
                 'productos'     =>  $this->detalle($this->reg->IDF)
             );
         }
-        //end productos
         if (empty($data)) {
             header("Location: ../view/errfacture.php");;
             die();
         } else {
-            //echo json_encode($data);
-            $jstring =  json_encode($data, true);
-            $zip = new ZipArchive();
-            $filename = "archivo-" . $this->fecha . ".zip";
-            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-                exit("cannot open <$filename>\n");
-            }
-            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            $zip->close();
-            $api = new Login();
-            $api->Uploader($filename);
+            echo json_encode($data);
+            // $jstring =  json_encode($data, true);
+            // $zip = new ZipArchive();
+            // $filename = "archivo-" . $this->fecha . ".zip";
+            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+            //     exit("cannot open <$filename>\n");
+            // }
+            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            // $zip->close();
+            // $api = new Login();
+            // $api->Uploader($filename);
         }
     }
 }

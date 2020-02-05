@@ -12,13 +12,17 @@ class App
     public $fecha; //fecha actual.zip
     public $fechac; //fecha consulta parametro
     public $detalle;
+
+    //variables globales para producto
+    public $tipo; //tipo_producto
+    public $descuento;
+
     public function __construct()
     {
         $this->fac = new Facture();
         //parametro para la consulta por fecha
         $this->fechac = isset($_POST["fecha"]) ? ($_POST["fecha"]) : "";
         $this->rspta = $this->fac->notacredito($this->fechac);
-
         date_default_timezone_set("America/Bogota");
         $this->fecha = date("Y-m-d");
     }
@@ -28,33 +32,30 @@ class App
         $this->detalle = array();
         $this->rsptad = $this->fac->detalle($id);
         while ($this->reg = $this->rsptad->fetch_object()) {
-            if (
-                $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
-                || $this->reg->valor_unitario_bruto == 0
-            ) {
-                $valor_unitario_bruto = 0.01;
-            } else {
-                $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
-            }
-
             //VALIDANDO CANTIDAD
             if ($this->reg->cantidad == 0) {
                 $cantidad = $this->reg->caja;
                 $valor_unitario_bruto = $this->reg->valor_caja;
+                $embalaje = 'caja';
             } else {
                 $cantidad = $this->reg->cantidad;
+                $embalaje = 'und';
                 if (
                     $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
                     || $this->reg->valor_unitario_bruto == 0
                 ) {
-                    $valor_unitario_bruto = 100;
+                    $valor_unitario_bruto = 0.01;
+                    $this->tipo = 4; //tipo de producto
+                    $this->descuento = 0; //descuento del producto
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
+                    $this->tipo = 1;
+                    $this->descuento = $this->reg->descuento;
                 }
             }
             //END
             $this->detalle[] = array(
-                "tipo" => "1",
+                "tipo" => $this->tipo,
                 "marca" => "",
                 "codigo" => $this->reg->codigo,
                 "nombre" => $this->reg->nombre,
@@ -68,9 +69,16 @@ class App
                 "descuentos" => array(
                     array(
                         "razon" => "Descuento",
-                        "valor" => $this->reg->descuento,
+                        "valor" => $this->descuento,
                         "codigo" => "00",
                         "porcentaje" => 0.0
+                    )
+                ),
+                "extensibles" => array(
+                    array(
+                        "tipo_embalaje" => '',
+                        "tipo_empaque" => $embalaje,
+                        "bodega" => $this->reg->bodega,
                     )
                 ),
                 "tipo_gravado" => 1,
@@ -101,7 +109,6 @@ class App
                 $tipo_documento = 91;
             }
 
-
             if ($this->reg->tipo_regimen == null) {
                 $tipo_regimen = 49;
             } else {
@@ -112,14 +119,18 @@ class App
             } else {
                 $departamento = $this->reg->departamento;
             }
-
+            //validando nit
+            $nit  = str_replace('.', '', $this->reg->nit);
+            $nit = preg_replace('/-/', '', $nit);
+            $nit = substr($nit, 0, 10);
             //end validaciones
+
             $data[] = array(
-                'nota' => "ATRATO",
+                "nota" => $this->reg->manera_pago,
                 "numero" => $this->reg->consecutivo,
                 "codigo_empresa" => 80,
                 "tipo_documento" => $tipo_documento,
-                "prefijo" => $this->reg->prefijo,
+                "prefijo" => "SETT",
                 'fecha_documento' =>  $this->reg->fecha_documento,
                 "valor_descuento" =>  0,
                 "anticipos" => null,
@@ -133,7 +144,7 @@ class App
                 "fecha_expiracion" =>  $this->reg->fecha_expiracion,
                 //CLIENTES ARRAY
                 'cliente'     => array(
-                    "codigo" => $this->reg->nit,
+                    "codigo" => $this->reg->codigo,
                     "nombres" => $this->reg->nombres,
                     "apellidos" => $this->reg->nombres,
                     "departamento" => $departamento,
@@ -142,7 +153,7 @@ class App
                     "correo" => "",
                     "telefono" => intval($telefono),
                     "direccion" => $this->reg->direccion,
-                    "documento" => $this->reg->documento,
+                    "documento" => $nit,
                     "punto_venta" =>  $this->reg->codigo,
                     "obligaciones" => ["ZZ"],
                     "razon_social" => $this->reg->nombres,
@@ -167,7 +178,7 @@ class App
                         "fecha" =>  $this->reg->fecha_documento,
                         "valor" => 0.0,
                         "metodo_pago" => 1,
-                        "detalle_pago" => "ZZZ"
+
                     )
                 ),
                 'descuentos'     => array(
@@ -192,7 +203,7 @@ class App
                     "asesor_numero" => 0,
                     "logistica_numero" => 0,
                     "cantidad_productos" => 0,
-                    "distribucion_numero" => 0
+                    "distribucion_numero" => 0,
                 ),
                 'nota_debito'     => array(
                     "razon" => 4,
@@ -220,17 +231,17 @@ class App
             header("Location: ../view/errnote.php");;
             die();
         } else {
-            // echo json_encode($data);
-            $jstring =  json_encode($data, true);
-            $zip = new ZipArchive();
-            $filename = "archivo-" . $this->fecha . ".zip";
-            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-                exit("cannot open <$filename>\n");
-            }
-            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            $zip->close();
-            $api = new Login();
-            $api->Uploader($filename);
+            echo json_encode($data);
+            // $jstring =  json_encode($data, true);
+            // $zip = new ZipArchive();
+            // $filename = "archivo-" . $this->fecha . ".zip";
+            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+            //     exit("cannot open <$filename>\n");
+            // }
+            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            // $zip->close();
+            // $api = new Login();
+            // $api->Uploader($filename);
         }
     }
 }
