@@ -16,6 +16,11 @@ class App
     //variables globales para producto
     public $tipo; //tipo_producto
     public $descuento;
+    //descuentos
+    public $cantidadunit;
+    public $cantidadcajaunit;
+    public $valor_unit;
+    public $valor_unitcaja;
 
     public function __construct()
     {
@@ -35,10 +40,13 @@ class App
             //VALIDANDO CANTIDAD
             if ($this->reg->cantidad == 0) {
                 $cantidad = $this->reg->caja;
+                $this->cantidadcajaunit = $cantidad; //obteniedo cantidad para el descuento;
                 $valor_unitario_bruto = $this->reg->valor_caja;
+                $this->valor_unitcaja = $valor_unitario_bruto;
                 $embalaje = 'caja';
             } else {
                 $cantidad = $this->reg->cantidad;
+                $this->cantidadunit = $cantidad;
                 $embalaje = 'und';
                 if (
                     $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
@@ -46,12 +54,33 @@ class App
                 ) {
                     $valor_unitario_bruto = 0.01;
                     $this->tipo = 4; //tipo de producto
-                    $this->descuento = 0; //descuento del producto
+                    $this->descuento = 0; //descuento del producto si es ragalo
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
                     $this->tipo = 1;
-                    $this->descuento = $this->reg->descuento;
+
+                    $this->valor_unit = $valor_unitario_bruto;
+                    $this->descuento = $this->reg->descuentoB;
                 }
+            }
+            //obtener la base del descuento
+            if ($this->reg->descuentoA == 0) {
+                $base = 0;
+            } else if ($this->reg->descuentoA == 0) {
+                $base = 0;
+            } else if ($this->reg->descuentoB == 0) {
+                $base1 = $this->valor_unitcaja * $this->cantidadcajaunit;
+                $db = $base1 * $this->reg->descuentoA;
+                $base = $base1 - $db / 100;
+            } else {
+                $base1 = $this->valor_unit * $this->cantidadunit;
+                $db = $base1 * $this->reg->descuentoB;
+                $base1 = $base1 - $db / 100;
+                //obteniendo descuentoB
+                $base2 = $base1;
+                $da = $base2 * $this->reg->descuentoA;
+                $base2 = $base2 - $da / 100;
+                $base = $base2;
             }
             //END
             $this->detalle[] = array(
@@ -68,18 +97,18 @@ class App
                 ),
                 "descuentos" => array(
                     array(
-                        "razon" => "Descuento",
-                        "valor" => $this->descuento,
+                        "razon" => "DescuentoB",
+                        "valor" => 0.0,
                         "codigo" => "00",
-                        "porcentaje" => 0.0
-                    )
-                ),
-                "extensibles" => array(
+                        "porcentaje" =>  $this->reg->descuentoB
+                    ),
                     array(
-                        "tipo_embalaje" => '',
-                        "tipo_empaque" => $embalaje,
-                        "bodega" => $this->reg->bodega,
-                    )
+                        "razon" => "DescuentoA",
+                        "valor" => 0.0,
+                        "codigo" => "00",
+                        "base" => round($base, 2),
+                        "porcentaje" =>  $this->reg->descuentoA
+                    ),
                 ),
                 "tipo_gravado" => 1,
                 "valor_referencial" => 0.0,

@@ -16,6 +16,12 @@ class App
     //variables globales para producto
     public $tipo; //tipo_producto
     public $descuento;
+    //descuentos
+    public $cantidadunit;
+    public $cantidadcajaunit;
+    public $valor_unit;
+    public $valor_unitcaja;
+
 
     public function __construct()
     {
@@ -38,10 +44,13 @@ class App
             //VALIDANDO CANTIDAD
             if ($this->reg->cantidad == 0) {
                 $cantidad = $this->reg->caja;
+                $this->cantidadcajaunit = $cantidad; //obteniedo cantidad para el descuento;
                 $valor_unitario_bruto = $this->reg->valor_caja;
+                $this->valor_unitcaja = $valor_unitario_bruto;
                 $embalaje = 'caja';
             } else {
                 $cantidad = $this->reg->cantidad;
+                $this->cantidadunit = $cantidad;
                 $embalaje = 'und';
                 if (
                     $this->reg->valor_unitario_bruto < 0.01 || $this->reg->valor_unitario_bruto == ""
@@ -52,10 +61,30 @@ class App
                     $this->descuento = 0; //descuento del producto
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
+                    $this->valor_unit = $valor_unitario_bruto;
                     $this->tipo = 1;
                     $this->descuento = $this->reg->descuentoB;
                 }
             }
+            if ($this->reg->descuentoA == 0) {
+                $base = 0;
+            } else if ($this->reg->descuentoA == 0) {
+                $base = 0;
+            } else if ($this->reg->descuentoB == 0) {
+                $base1 = $this->valor_unitcaja * $this->cantidadcajaunit;
+                $db = $base1 * $this->reg->descuentoA;
+                $base = $base1 - $db / 100;
+            } else {
+                $base1 = $this->valor_unit * $this->cantidadunit;
+                $db = $base1 * $this->reg->descuentoB;
+                $base1 = $base1 - $db / 100;
+                //obteniendo descuentoB
+                $base2 = $base1;
+                $da = $base2 * $this->reg->descuentoA;
+                $base2 = $base2 - $da / 100;
+                $base = $base2;
+            }
+
             //END
             $this->detalle[] = array(
                 "tipo" => $this->tipo,
@@ -71,25 +100,30 @@ class App
                 ),
                 "descuentos" => array(
                     array(
-                        "razon" => "Descuento",
-                        "valor" => $this->reg->descuentoB,
+                        "razon" => "DescuentoB",
+                        "valor" => 0.0,
                         "codigo" => "00",
-                        "porcentaje" => 0.0
-                    )
+                        "porcentaje" =>  $this->reg->descuentoB
+                    ),
+                    array(
+                        "razon" => "DescuentoA",
+                        "valor" => 0.0,
+                        "codigo" => "00",
+                        "base" => round($base, 2),
+                        "porcentaje" =>  $this->reg->descuentoA
+                    ),
                 ),
                 "extensibles" =>
                 array(
                     "tipo_embalaje" => "",
                     "tipo_empaque" => $embalaje,
-                    "bodega" => $this->reg->bodega,
-                    "descuentoA" => $this->reg->descuentoA
-
+                    "bodega" => $this->reg->bodega
                 ),
 
                 "tipo_gravado" => 1,
                 "valor_referencial" => 0.0,
                 "valor_unitario_bruto" => $valor_unitario_bruto,
-                "valor_unitario_sugerido" => 0.0
+                "valor_unitario_sugerido" => $this->reg->valor_caja
             );
         }
         return ($this->detalle);
@@ -144,7 +178,7 @@ class App
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
                 "prefijo" => 'SETT',
-                'fecha_documento' => '2020-02-03',
+                'fecha_documento' => '2020-02-02',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
