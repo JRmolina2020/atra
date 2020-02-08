@@ -15,8 +15,8 @@ class App
 
     //variables globales para producto
     public $tipo; //tipo_producto
-    public $descuento;
     //descuentos
+    public $descuento;
     public $cantidadunit;
     public $cantidadcajaunit;
     public $valor_unit;
@@ -30,6 +30,7 @@ class App
         $this->rspta = $this->fac->notacredito($this->fechac);
         date_default_timezone_set("America/Bogota");
         $this->fecha = date("Y-m-d");
+        $this->tipo = 1;
     }
     function detalle($id)
     {
@@ -37,11 +38,11 @@ class App
         $this->detalle = array();
         $this->rsptad = $this->fac->detalle($id);
         while ($this->reg = $this->rsptad->fetch_object()) {
-            //VALIDANDO CANTIDAD
+            //Valindando la cantidad de productos si es en caja o si es por unidad
             if ($this->reg->cantidad == 0) {
                 $cantidad = $this->reg->caja;
                 $this->cantidadcajaunit = $cantidad; //obteniedo cantidad para el descuento;
-                $valor_unitario_bruto = $this->reg->valor_caja;
+                $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
                 $this->valor_unitcaja = $valor_unitario_bruto;
                 $embalaje = 'caja';
             } else {
@@ -54,16 +55,15 @@ class App
                 ) {
                     $valor_unitario_bruto = 0.01;
                     $this->tipo = 4; //tipo de producto
-                    $this->descuento = 0; //descuento del producto si es ragalo
+                    $this->descuento = 0; //descuento del producto regalo
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
-                    $this->tipo = 1;
-
+                    $this->tipo = 2;
                     $this->valor_unit = $valor_unitario_bruto;
                     $this->descuento = $this->reg->descuentoB;
                 }
             }
-            //obtener la base del descuento
+            //validando descuentos Base A Y B
             if ($this->reg->descuentoA == 0) {
                 $base = 0;
             } else if ($this->reg->descuentoA == 0) {
@@ -110,24 +110,30 @@ class App
                         "porcentaje" =>  $this->reg->descuentoA
                     ),
                 ),
+                "extensibles" =>
+                array(
+                    "tipo_embalaje" => "",
+                    "tipo_empaque" => $embalaje,
+                    "bodega" => $this->reg->bodega
+                ),
                 "tipo_gravado" => 1,
                 "valor_referencial" => 0.0,
                 "valor_unitario_bruto" => $valor_unitario_bruto,
-                "valor_unitario_sugerido" => 0.0
+                "valor_unitario_sugerido" => $this->reg->totalvd
             );
         }
         return ($this->detalle);
     }
     function Consultas()
     {
-        //validaciones
         while ($this->reg = $this->rspta->fetch_object()) {
+            //Validando la ciudad del cliente
             if ($this->reg->ciudad == "") {
                 $ciudad = 20001;
             } else {
                 $ciudad = $this->reg->ciudad;
             }
-            //VALIDANDO TELEFONO
+            //Valindado el telefono del cliente 
             if ($this->reg->telefono == "" || $this->reg->telefono == 0 || $this->reg->telefono == 1) {
                 $telefono = 11111111;
             } else {
@@ -137,12 +143,13 @@ class App
             if ($this->reg->tipo_documento == 3 || $this->reg->tipo_documento == 6) {
                 $tipo_documento = 91;
             }
-
+            //Valindando el tipo de regimen
             if ($this->reg->tipo_regimen == null) {
                 $tipo_regimen = 49;
             } else {
                 $tipo_regimen = $this->reg->tipo_regimen;
             }
+            //Validando el departamento
             if ($this->reg->departamento == null) {
                 $departamento = 20;
             } else {
@@ -152,15 +159,39 @@ class App
             $nit  = str_replace('.', '', $this->reg->nit);
             $nit = preg_replace('/-/', '', $nit);
             $nit = substr($nit, 0, 10);
-            //end validaciones
+            //end nit
+
+            //Quitando las letras del pedido EJEM : APP123 -> 123
+            $pedido = preg_replace('/[^0-9]/', '', $this->reg->pedido);
+
+            //validar el mensaje de resolucion 
+            if ($this->reg->prefijo == "B") {
+                $resolucion = "RESOLUCION DIAN 18762009353951 FECHA: 2018/07/25 DEL No. b109728 AL No. b200000 prefijo[B] habilita.";
+            } elseif ($this->reg->prefijo == "C") {
+                $resolucion = "RESOLUCION DIAN 18762009353951 FECHA: 2018/07/25 DEL No. c17612 AL No. c30000 PREFIJO [C] habilita.";
+            } elseif ($this->reg->prefijo == "TAT") {
+                $resolucion = "Res. Dian No. 18762010933894 Fecha : 2018-10-25 Del TAT 19229 al tat 30000 habilita FACTURA POR COMPUTADOR.";
+            } elseif ($this->reg->prefijo == "F") {
+                $resolucion = "RESOLUCION DIAN 240000035883 FECHA: 2015/09/21 DEL No. 776 AL No. 10000 PREFIJO [F] HABILITA.";
+            } elseif ($this->reg->prefijo == "V") {
+                $resolucion = "Res. Dian No. 240000018505 Fecha : 2009-07-10 Del V-1 al 4000 HABILITA FACTURA POR COMPUTADOR.";
+            } elseif ($this->reg->prefijo == "FF") {
+                $resolucion = "RESOLUCION DIAN 18762015697813 FECHA: 2019/07/15 DEL No. 30001 AL No. 50000 PREFIJO [FF] habilita.";
+            }
+            //end resoluciones 
+
+            //VALOR PRUEBA PARA LA NOTA
+            $numero = preg_replace('/[^0-9]/', '', $this->reg->vnot);
+            $pre = "SETT";
+            $numero = $pre . $numero;
 
             $data[] = array(
-                "nota" => $this->reg->manera_pago,
+                "nota" => $this->reg->observacion,
                 "numero" => $this->reg->consecutivo,
                 "codigo_empresa" => 80,
                 "tipo_documento" => $tipo_documento,
-                "prefijo" => "SETT",
-                'fecha_documento' =>  $this->reg->fecha_documento,
+                "prefijo" => $this->reg->prefijo,
+                'fecha_documento' =>  "2020-02-01", //this->reg->fecha_documento
                 "valor_descuento" =>  0,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -207,6 +238,7 @@ class App
                         "fecha" =>  $this->reg->fecha_documento,
                         "valor" => 0.0,
                         "metodo_pago" => 1,
+                        "detalle_pago" => "ZZZ"
 
                     )
                 ),
@@ -220,10 +252,10 @@ class App
                 ),
                 'extensibles'     => array(
                     "peso" => 0.0,
-                    "zona" => "",
+                    "zona" => $this->reg->zona,
                     "orden" => 0,
                     "asesor" => $this->reg->asesor,
-                    "pedido" => $this->reg->pedido,
+                    "pedido" => $pedido,
                     "canastas" => 0,
                     "planilla" => "",
                     "logistica" => "",
@@ -235,20 +267,18 @@ class App
                     "distribucion_numero" => 0,
                 ),
                 'nota_debito'     => array(
-                    "razon" => 4,
-                    "factura" => $this->reg->facturap,
+                    "razon" => 0,
+                    "factura" => "", //$this-reg->facturap contiene el prefijo
                     "id_felam" => 0,
-                    "tipo_documento" => "33",
-                    "descripcion_razon" => "En este apartado se genera la nota debito con fines internos
-                    entre la empresa y el cliente referente"
+                    "tipo_documento" => "",
+                    "descripcion_razon" => ""
                 ),
                 'nota_credito'     => array(
                     "razon" => 5,
-                    "factura" => $this->reg->facturap,
+                    "factura" => $numero, //$this-reg->facturap contiene el prefijo
                     "id_felam" => 0,
-                    "tipo_documento" => "23",
-                    "descripcion_razon" => "En este apartado se genera la nota credito con fines internos
-                    entre la empresa y el cliente referente"
+                    "tipo_documento" => "20",
+                    "descripcion_razon" => "En este apartado se genera la nota credito con fines internos entre la empresa y el cliente referente"
                 ),
                 //productos
                 'productos'     =>  $this->detalle($this->reg->IDF)

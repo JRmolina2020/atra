@@ -2,44 +2,57 @@
 require 'header.php';
 ?>
 
-<H1>ENVIAR FACTURAS</H1>
-<div class="row mt-5">
-    <div class="col-lg-3 col-md-12">
-        <!-- Contenido -->
-        <form method="post" action="../controller/facture.php">
-            <div class="row">
-                <div class="col-lg-10">
-                    <div class="form-group">
-                        <input class="form-control" placeholder="digitar fecha" type="text" readonly name="fecha"
-                            id="datepicker">
+
+
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#home">Facturas</a></li>
+    <li><a data-toggle="tab" href="#menu1">Notas creditos</a></li>
+</ul>
+
+<div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+        <H3>FACTURAS</H3>
+        <div class="row mt-5">
+            <div class="col-lg-6 col-md-12">
+                <form method="post" action="../controller/facture.php">
+                    <div class="row">
+                        <div class="col-lg-10">
+                            <div class="form-group">
+                                <input class="form-control" placeholder="digitar fecha factura" type="text" readonly
+                                    name="fecha" id="datepicker">
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <input class="btn btn-danger" type="submit" value="Enviar facturas">
+                        </div>
                     </div>
-                </div>
-                <div class="col-lg-12">
-                    <input class="btn btn-danger" type="submit" value="Enviar facturas">
-                </div>
+                </form>
             </div>
-        </form>
+        </div><!-- Fin row -->
     </div>
-</div><!-- Fin row -->
-<h1>ENVIAR NOTAS CREDITOS</h1>
-<div class="row mt-5">
-    <div class="col-lg-3 col-md-12">
-        <!-- Contenido -->
-        <form method="post" action="../controller/note_credit.php">
-            <div class="row">
-                <div class="col-lg-10">
-                    <div class="form-group">
-                        <input class="form-control" placeholder="digitar fecha" type="text" readonly name="fecha"
-                            id="datepickernota">
+    <div id="menu1" class="tab-pane fade">
+        <H3>NOTAS CREDITOS</H3>
+        <div class="row mt-5">
+            <div class="col-lg-6 col-md-12">
+                <!-- Contenido -->
+                <form method="post" action="../controller/note_credit.php">
+                    <div class="row">
+                        <div class="col-lg-10">
+                            <div class="form-group">
+                                <input class="form-control" placeholder="digitar fecha nota credito" type="text"
+                                    readonly name="fecha" id="datepickernota">
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <input class="btn btn-primary" type="submit" value="Enviar nota credito">
+                        </div>
                     </div>
-                </div>
-                <div class="col-lg-12">
-                    <input class="btn btn-warning" type="submit" value="Enviar nota credito">
-                </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
-</div><!-- Fin row -->
+</div>
+
 <?php
 require 'footer.php';
 ?>
@@ -47,11 +60,11 @@ require 'footer.php';
 $(function() {
     $("#datepicker").datepicker({
         format: 'yyyy-mm-dd',
-        locale: 'es-es',
+        language: 'es'
     });
     $("#datepickernota").datepicker({
         format: 'yyyy-mm-dd',
-        locale: 'es-es',
+        language: 'es'
     });
 });
 </script>

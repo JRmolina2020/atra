@@ -1,5 +1,4 @@
 <?php
-
 require_once "../model/Facture.php";
 require "inc/zipfile.inc.php";
 require "authapi.php";
@@ -15,8 +14,8 @@ class App
 
     //variables globales para producto
     public $tipo; //tipo_producto
-    public $descuento;
     //descuentos
+    public $descuento;
     public $cantidadunit;
     public $cantidadcajaunit;
     public $valor_unit;
@@ -29,10 +28,12 @@ class App
         //parametro para la consulta por fecha
         $this->fechac = isset($_POST["fecha"]) ? ($_POST["fecha"]) : "";
         $this->rspta = $this->fac->cabezera($this->fechac);
-        $this->tipo = 1;
-        $this->descuento = 0;
         date_default_timezone_set("America/Bogota");
         $this->fecha = date("Y-m-d");
+
+        //inicializaciones
+        $this->tipo = 1;
+        $this->descuento = 0;
     }
     function detalle($id)
     {
@@ -41,9 +42,9 @@ class App
         $this->rsptad = $this->fac->detalle($id);
         while ($this->reg = $this->rsptad->fetch_object()) {
 
-            //VALIDANDO CANTIDAD
-            if ($this->reg->cantidad == 0) {
-                $cantidad = $this->reg->caja;
+            //Valindando la cantidad de productos si es en caja o si es por unidad
+            if ($this->reg->cantidad == 0) { //si la cantidad und es 0 es por que es una caja
+                $cantidad = $this->reg->caja; //le asignamos a la cantidad el total de cajas
                 $this->cantidadcajaunit = $cantidad; //obteniedo cantidad para el descuento;
                 $valor_unitario_bruto = $this->reg->valor_caja;
                 $this->valor_unitcaja = $valor_unitario_bruto;
@@ -58,7 +59,7 @@ class App
                 ) {
                     $valor_unitario_bruto = 0.01;
                     $this->tipo = 4; //tipo de producto
-                    $this->descuento = 0; //descuento del producto
+                    $this->descuento = 0; //descuento del producto regalo
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
                     $this->valor_unit = $valor_unitario_bruto;
@@ -66,6 +67,7 @@ class App
                     $this->descuento = $this->reg->descuentoB;
                 }
             }
+            //validando descuentos Base A Y B
             if ($this->reg->descuentoA == 0) {
                 $base = 0;
             } else if ($this->reg->descuentoA == 0) {
@@ -84,8 +86,7 @@ class App
                 $base2 = $base2 - $da / 100;
                 $base = $base2;
             }
-
-            //END
+            //END descuentos BASE A Y B 
             $this->detalle[] = array(
                 "tipo" => $this->tipo,
                 "marca" => "",
@@ -130,20 +131,21 @@ class App
     }
     function Consultas()
     {
-        //validaciones
+        //VALIDACIONES
         while ($this->reg = $this->rspta->fetch_object()) {
+            //Validando la ciudad del cliente.
             if ($this->reg->ciudad == "") {
                 $ciudad = 20001;
             } else {
                 $ciudad = $this->reg->ciudad;
             }
-            //VALIDANDO TELEFONO
+            //Valindado el telefono del cliente
             if ($this->reg->telefono == "" || $this->reg->telefono == 0 || $this->reg->telefono == 1) {
                 $telefono = 11111111;
             } else {
                 $telefono = substr($this->reg->telefono, 0, 10); //recortando telefonos a 10 digitos
             }
-            //validando metodo de pago
+            //validando el metodo de pago
             if (
                 $this->reg->metodo_pago == 1 || $this->reg->metodo_pago == 13
                 || $this->reg->metodo_pago == 8
@@ -152,8 +154,8 @@ class App
             } else {
                 $metodo_pago = 2; //credito
             }
-            //validando tipo de regimen
-            if ($this->reg->tipo_regimen == null) {
+            //Vvalidando el tipo de regimen
+            if ($this->reg->tipo_regimen == null || $this->reg->tipo_regimen == 0) {
                 $tipo_regimen = 49;
             } else {
                 $tipo_regimen = $this->reg->tipo_regimen;
@@ -164,21 +166,39 @@ class App
             } else {
                 $departamento = $this->reg->departamento;
             }
-            //quintando prefijo al numero de la factura
+            //quintando prefijo al numero de la factura EJEM: B123 -> 123
             $numero = preg_replace('/[^0-9]/', '', $this->reg->numero);
             //validando nit
             $nit  = str_replace('.', '', $this->reg->nit);
             $nit = preg_replace('/-/', '', $nit);
             $nit = substr($nit, 0, 10);
-            //end validaciones
+            //Quitando las letras del pedido EJEM : APP123 -> 123
+            $pedido = preg_replace('/[^0-9]/', '', $this->reg->pedido);
+            //end
+            //validar el mensaje de resolucion 
+            if ($this->reg->prefijo == "B") {
+                $resolucion = "RESOLUCION DIAN 18762009353951 FECHA: 2018/07/25 DEL No. b109728 AL No. b200000 prefijo[B] habilita.";
+            } elseif ($this->reg->prefijo == "C") {
+                $resolucion = "RESOLUCION DIAN 18762009353951 FECHA: 2018/07/25 DEL No. c17612 AL No. c30000 PREFIJO [C] habilita.";
+            } elseif ($this->reg->prefijo == "TAT") {
+                $resolucion = "Res. Dian No. 18762010933894 Fecha : 2018-10-25 Del TAT 19229 al tat 30000 habilita FACTURA POR COMPUTADOR.";
+            } elseif ($this->reg->prefijo == "F") {
+                $resolucion = "RESOLUCION DIAN 240000035883 FECHA: 2015/09/21 DEL No. 776 AL No. 10000 PREFIJO [F] HABILITA.";
+            } elseif ($this->reg->prefijo == "V") {
+                $resolucion = "Res. Dian No. 240000018505 Fecha : 2009-07-10 Del V-1 al 4000 HABILITA FACTURA POR COMPUTADOR.";
+            } elseif ($this->reg->prefijo == "FF") {
+                $resolucion = "RESOLUCION DIAN 18762015697813 FECHA: 2019/07/15 DEL No. 30001 AL No. 50000 PREFIJO [FF] habilita.";
+            }
+            //end resoluciones 
 
+            //ARRAYS
             $data[] = array(
                 "nota" => $this->reg->manera_pago,
                 "numero" => $numero,
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
-                "prefijo" => 'SETT',
-                'fecha_documento' => '2020-02-02',
+                "prefijo" => 'SETT', //this->reg->prefijo
+                'fecha_documento' => '2020-02-01',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -238,10 +258,10 @@ class App
                 ),
                 'extensibles'     => array(
                     "peso" => 0.0,
-                    "zona" => '',
+                    "zona" => $this->reg->zona,
                     "orden" => 0,
                     "asesor" => $this->reg->asesor,
-                    "pedido" => $this->reg->pedido,
+                    "pedido" => $pedido,
                     "canastas" => 0,
                     "planilla" => "",
                     "logistica" => "",
@@ -273,6 +293,7 @@ class App
                 'productos'     =>  $this->detalle($this->reg->IDF)
             );
         }
+        //END
         if (empty($data)) {
             header("Location: ../view/errfacture.php");;
             die();

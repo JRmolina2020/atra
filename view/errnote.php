@@ -8,6 +8,7 @@ require 'footer.php';
 let timerInterval
 Swal.fire({
     title: 'HOLA...',
+    icon: 'error',
     text: 'NO HAY NOTAS CREDITOS PARA ESTE DIA',
     timer: 2000,
     timerProgressBar: true,
