@@ -78,7 +78,7 @@ class Facture
         ON CI.CODIGO = C.CIUDAD
         INNER JOIN formas_pagos FO
         ON FO.ID = V.IDFORMPAGO
-        WHERE CO.FEC_COMPRA  = '$fecha' and CO.ID=90744";
+        WHERE CO.FEC_COMPRA  = '$fecha'";
         return ejecutarConsulta($sql);
     }
     public function detalle($id)

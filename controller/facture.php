@@ -2,6 +2,7 @@
 require_once "../model/Facture.php";
 require "inc/zipfile.inc.php";
 require "authapi.php";
+
 class App
 {
     public $fac;
@@ -139,6 +140,14 @@ class App
             } else {
                 $ciudad = $this->reg->ciudad;
             }
+            //validando el barrio del cliente
+            if ($this->reg->barrio == "DIVINO NIÃ‘O" || $this->reg->barrio == "divino niÃ±o") {
+                $barrio = "divino nino";
+            } else if ($this->reg->barrio == "450 AÃ‘OS") {
+                $barrio = "450 ";
+            } else {
+                $barrio = $this->reg->barrio;
+            }
             //Valindado el telefono del cliente
             if ($this->reg->telefono == "" || $this->reg->telefono == 0 || $this->reg->telefono == 1) {
                 $telefono = 11111111;
@@ -191,6 +200,10 @@ class App
             }
             //end resoluciones 
 
+
+            $pre = "SETT";
+            $numeri = $pre . $numero;
+
             //ARRAYS
             $data[] = array(
                 "nota" => $this->reg->manera_pago,
@@ -198,7 +211,7 @@ class App
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
                 "prefijo" => 'SETT', //this->reg->prefijo
-                'fecha_documento' => '2020-02-01',
+                'fecha_documento' => '2019-12-30',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -216,7 +229,7 @@ class App
                     "apellidos" => $this->reg->nombres,
                     "departamento" => $departamento,
                     "ciudad" => $ciudad,
-                    "barrio" => $this->reg->barrio,
+                    "barrio" => $barrio,
                     "correo" => "",
                     "telefono" => intval($telefono),
                     "direccion" => $this->reg->direccion,
@@ -277,17 +290,15 @@ class App
                     "razon" => 4,
                     "factura" => $this->reg->facturap,
                     "id_felam" => 0,
-                    "tipo_documento" => "33",
-                    "descripcion_razon" => "En este apartado se genera la nota debito con fines internos
-                    entre la empresa y el cliente referente"
+                    "tipo_documento" => "",
+                    "descripcion_razon" => ""
                 ),
                 'nota_credito'     => array(
                     "razon" => 5,
-                    "factura" => $this->reg->facturap,
+                    "factura" => $numeri, //reg->facturap tiene el prefijo de la factura
                     "id_felam" => 0,
                     "tipo_documento" => "23",
-                    "descripcion_razon" => "En este apartado se genera la nota credito con fines internos
-                    entre la empresa y el cliente referente"
+                    "descripcion_razon" => "En este apartado se genera la nota credito con fines internos entre la empresa y el cliente referente"
                 ),
                 //productos
                 'productos'     =>  $this->detalle($this->reg->IDF)
@@ -298,17 +309,17 @@ class App
             header("Location: ../view/errfacture.php");;
             die();
         } else {
-            echo json_encode($data);
-            // $jstring =  json_encode($data, true);
-            // $zip = new ZipArchive();
-            // $filename = "archivo-" . $this->fecha . ".zip";
-            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-            //     exit("cannot open <$filename>\n");
-            // }
-            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            // $zip->close();
-            // $api = new Login();
-            // $api->Uploader($filename);
+            //echo json_encode($data);
+            $jstring =  json_encode($data, true);
+            $zip = new ZipArchive();
+            $filename = "archivo-" . $this->fecha . ".zip";
+            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+                exit("cannot open <$filename>\n");
+            }
+            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            $zip->close();
+            $api = new Login();
+            $api->Uploader($filename);
         }
     }
 }
