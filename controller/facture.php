@@ -46,10 +46,11 @@ class App
             //Valindando la cantidad de productos si es en caja o si es por unidad
             if ($this->reg->cantidad == 0) { //si la cantidad und es 0 es por que es una caja
                 $cantidad = $this->reg->caja; //le asignamos a la cantidad el total de cajas
-                $this->cantidadcajaunit = $cantidad; //obteniedo cantidad para el descuento;
                 $valor_unitario_bruto = $this->reg->valor_caja;
-                $this->valor_unitcaja = $valor_unitario_bruto;
                 $embalaje = 'caja';
+                //descuento
+                $this->valor_unitcaja = $valor_unitario_bruto;
+                $this->cantidadcajaunit = $cantidad;
             } else {
                 $cantidad = $this->reg->cantidad;
                 $this->cantidadunit = $cantidad;
@@ -59,35 +60,49 @@ class App
                     || $this->reg->valor_unitario_bruto == 0
                 ) {
                     $valor_unitario_bruto = 0.01;
-                    $this->tipo = 4; //tipo de producto
-                    $this->descuento = 0; //descuento del producto regalo
+                    $this->tipo = 4;
                 } else {
                     $valor_unitario_bruto = $this->reg->valor_unitario_bruto;
                     $this->valor_unit = $valor_unitario_bruto;
-                    $this->tipo = 1;
-                    $this->descuento = $this->reg->descuentoB;
                 }
             }
-            //validando descuentos Base A Y B
-            if ($this->reg->descuentoA == 0) {
-                $base = 0;
-            } else if ($this->reg->descuentoA == 0) {
-                $base = 0;
-            } else if ($this->reg->descuentoB == 0) {
-                $base1 = $this->valor_unitcaja * $this->cantidadcajaunit;
-                $db = $base1 * $this->reg->descuentoA;
-                $base = $base1 - $db / 100;
+            //Validando si el producto dado es regalo o no.
+            if ($this->reg->totalvd == 0 ||  $this->reg->valor_unitario_bruto == 0) {
+                $this->tipo = 4;
+                $this->reg->descuentoA = 0;
+                $this->reg->descuentoB = 0;
             } else {
-                $base1 = $this->valor_unit * $this->cantidadunit;
-                $db = $base1 * $this->reg->descuentoB;
-                $base1 = $base1 - $db / 100;
-                //obteniendo descuentoB
-                $base2 = $base1;
-                $da = $base2 * $this->reg->descuentoA;
-                $base2 = $base2 - $da / 100;
-                $base = $base2;
+                $this->tipo = 1;
+                $this->reg->descuentoA =  $this->reg->descuentoA;
+                $this->reg->descuentoB =  $this->reg->descuentoB;
             }
-            //END descuentos BASE A Y B 
+
+            //VALIDANDO DESCUENTO
+            if ($this->reg->cantidad == 0) { //SI LA CANTIDAD ES 0 ES POR QUE ES UNA CAJA
+                if ($this->reg->descuentoA == 0) {
+                    $base = 0;
+                } else {
+                    $base1 = $this->valor_unitcaja * $this->cantidadcajaunit;
+                    $db = $base1 * $this->reg->descuentoB / 100;
+                    $base = $db;
+                    $base = $base1 - $db;
+                    //  $tot = $base;
+                    // $base = $tot * $this->reg->descuentoA / 100;
+                }
+            } else {
+                if ($this->reg->descuentoA == 0) { // ES UNA UNIDAD
+                    $base = 0;
+                } else {
+                    $base1 = $this->valor_unit * $this->cantidadunit;
+                    $db = $base1 * $this->reg->descuentoB / 100;
+                    $base = $db;
+                    $base = $base1 - $db;
+                    // $tot = $base;
+                    //$base = $tot * $this->reg->descuentoA / 100;
+                }
+            }
+
+            //##########################################################################################
             $this->detalle[] = array(
                 "tipo" => $this->tipo,
                 "marca" => "",
@@ -130,10 +145,17 @@ class App
         }
         return ($this->detalle);
     }
+    //#################################################################################
     function Consultas()
     {
         //VALIDACIONES
         while ($this->reg = $this->rspta->fetch_object()) {
+            //validando departamento
+            if ($this->reg->departamento == null) {
+                $departamento = 20;
+            } else {
+                $departamento = $this->reg->departamento;
+            }
             //Validando la ciudad del cliente.
             if ($this->reg->ciudad == "") {
                 $ciudad = 20001;
@@ -169,22 +191,17 @@ class App
             } else {
                 $tipo_regimen = $this->reg->tipo_regimen;
             }
-            //validando departamento
-            if ($this->reg->departamento == null) {
-                $departamento = 20;
-            } else {
-                $departamento = $this->reg->departamento;
-            }
+
             //quintando prefijo al numero de la factura EJEM: B123 -> 123
             $numero = preg_replace('/[^0-9]/', '', $this->reg->numero);
-            //validando nit
+            //Validando nit
             $nit  = str_replace('.', '', $this->reg->nit);
             $nit = preg_replace('/-/', '', $nit);
             $nit = substr($nit, 0, 10);
             //Quitando las letras del pedido EJEM : APP123 -> 123
             $pedido = preg_replace('/[^0-9]/', '', $this->reg->pedido);
             //end
-            //validar el mensaje de resolucion 
+            //Validar el mensaje de resolucion 
             if ($this->reg->prefijo == "B") {
                 $resolucion = "RESOLUCION DIAN 18762009353951 FECHA: 2018/07/25 DEL No. b109728 AL No. b200000 prefijo[B] habilita.";
             } elseif ($this->reg->prefijo == "C") {
@@ -206,12 +223,12 @@ class App
 
             //ARRAYS
             $data[] = array(
-                "nota" => $this->reg->manera_pago,
+                "nota" => $this->reg->observacion,
                 "numero" => $numero,
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
                 "prefijo" => 'SETT', //this->reg->prefijo
-                'fecha_documento' => '2019-12-30',
+                'fecha_documento' => '2020-02-12',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -229,7 +246,7 @@ class App
                     "apellidos" => $this->reg->nombres,
                     "departamento" => $departamento,
                     "ciudad" => $ciudad,
-                    "barrio" => $barrio,
+                    "barrio" => $barrio . "-" . $this->reg->ubicacion_envio,
                     "correo" => "",
                     "telefono" => intval($telefono),
                     "direccion" => $this->reg->direccion,
@@ -270,11 +287,13 @@ class App
                     )
                 ),
                 'extensibles'     => array(
-                    "peso" => 0.0,
+                    "resolucion" => $resolucion,
+                    "manera_pago" => $this->reg->manera_pago,
                     "zona" => $this->reg->zona,
-                    "orden" => 0,
                     "asesor" => $this->reg->asesor,
                     "pedido" => $pedido,
+                    "peso" => 0.0,
+                    "orden" => 0,
                     "canastas" => 0,
                     "planilla" => "",
                     "logistica" => "",
@@ -283,8 +302,7 @@ class App
                     "asesor_numero" => 0,
                     "logistica_numero" => 0,
                     "cantidad_productos" => 0,
-                    "distribucion_numero" => 0
-
+                    "distribucion_numero" => 0,
                 ),
                 'nota_debito'     => array(
                     "razon" => 4,
@@ -309,7 +327,7 @@ class App
             header("Location: ../view/errfacture.php");;
             die();
         } else {
-            //echo json_encode($data);
+            //   echo json_encode($data);
             $jstring =  json_encode($data, true);
             $zip = new ZipArchive();
             $filename = "archivo-" . $this->fecha . ".zip";
