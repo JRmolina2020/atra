@@ -67,15 +67,17 @@ class App
                 }
             }
             //Validando si el producto dado es regalo o no.
-            if ($this->reg->totalvd == 0 ||  $this->reg->valor_unitario_bruto == 0) {
+            if ($this->reg->totalvd == 0) {
                 $this->tipo = 4;
-                $this->reg->descuentoA = 0;
-                $this->reg->descuentoB = 0;
+                $this->reg->descuentoA = 0.0;
+                $this->reg->descuentoB = 0.0;
+                $valor_unitario_bruto = 0.01;
             } else {
                 $this->tipo = 1;
                 $this->reg->descuentoA =  $this->reg->descuentoA;
                 $this->reg->descuentoB =  $this->reg->descuentoB;
             }
+
 
             //VALIDANDO DESCUENTO
             if ($this->reg->cantidad == 0) { //SI LA CANTIDAD ES 0 ES POR QUE ES UNA CAJA
@@ -179,7 +181,7 @@ class App
             //validando el metodo de pago
             if (
                 $this->reg->metodo_pago == 1 || $this->reg->metodo_pago == 13
-                || $this->reg->metodo_pago == 8
+                ||  $this->reg->metodo_pago == 14
             ) {
                 $metodo_pago = 1; //contado
             } else {
@@ -214,6 +216,8 @@ class App
                 $resolucion = "Res. Dian No. 240000018505 Fecha : 2009-07-10 Del V-1 al 4000 HABILITA FACTURA POR COMPUTADOR.";
             } elseif ($this->reg->prefijo == "FF") {
                 $resolucion = "RESOLUCION DIAN 18762015697813 FECHA: 2019/07/15 DEL No. 30001 AL No. 50000 PREFIJO [FF] habilita.";
+            } else {
+                $resolucion = "";
             }
             //end resoluciones 
 
@@ -227,8 +231,8 @@ class App
                 "numero" => $numero,
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
-                "prefijo" => 'SETT', //this->reg->prefijo
-                'fecha_documento' => '2020-02-12',
+                "prefijo" =>  $this->reg->prefijo,
+                'fecha_documento' => '2020-02-14',
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -327,7 +331,7 @@ class App
             header("Location: ../view/errfacture.php");;
             die();
         } else {
-            //   echo json_encode($data);
+            // echo json_encode($data);
             $jstring =  json_encode($data, true);
             $zip = new ZipArchive();
             $filename = "archivo-" . $this->fecha . ".zip";

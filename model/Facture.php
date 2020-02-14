@@ -46,7 +46,7 @@ class Facture
         ON CI.CODIGO = C.CIUDAD
         INNER JOIN formas_pagos FO
         ON FO.ID = V.IDFORMPAGO
-        WHERE   V.FEC_COMPRA = '$fecha' and TP.ID NOT IN(7) and v.id=218151";
+        WHERE   V.FEC_COMPRA = '$fecha' and TP.ID NOT IN(7) and v.id=218360";
         return ejecutarConsulta($sql);
     }
     public function notacredito($fecha)
