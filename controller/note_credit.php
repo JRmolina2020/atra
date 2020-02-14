@@ -55,7 +55,7 @@ class App
             if ($this->reg->totalcd == 0 ||  $this->reg->valor_unitario_bruto == 0) {
                 $this->tipo = 4;
             } else {
-                $this->tipo = 2;
+                $this->tipo = 1;
             }
 
             $this->detalle[] = array(
@@ -155,7 +155,7 @@ class App
                 "codigo_empresa" => 80,
                 "tipo_documento" => $tipo_documento,
                 "prefijo" => $this->reg->prefijo,
-                'fecha_documento' =>  "2019-12-31", //this->reg->fecha_documento
+                'fecha_documento' =>  $this->reg->fecha_documento,
                 "valor_descuento" =>  0,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -239,7 +239,7 @@ class App
                 ),
                 'nota_credito'     => array(
                     "razon" => 5,
-                    "factura" => $numero, //$this-reg->facturap contiene el prefijo
+                    "factura" => $this->reg->facturap, //$this-reg->facturap contiene el prefijo
                     "id_felam" => 0,
                     "tipo_documento" => "20",
                     "descripcion_razon" =>  $this->reg->observacion

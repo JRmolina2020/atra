@@ -317,7 +317,7 @@ class App
                 ),
                 'nota_credito'     => array(
                     "razon" => 5,
-                    "factura" => $numeri, //reg->facturap tiene el prefijo de la factura
+                    "factura" => $this->reg->facturap,
                     "id_felam" => 0,
                     "tipo_documento" => "23",
                     "descripcion_razon" => "En este apartado se genera la nota credito con fines internos entre la empresa y el cliente referente"
@@ -331,17 +331,17 @@ class App
             header("Location: ../view/errfacture.php");;
             die();
         } else {
-            // echo json_encode($data);
-            $jstring =  json_encode($data, true);
-            $zip = new ZipArchive();
-            $filename = "archivo-" . $this->fecha . ".zip";
-            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-                exit("cannot open <$filename>\n");
-            }
-            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            $zip->close();
-            $api = new Login();
-            $api->Uploader($filename);
+            echo json_encode($data);
+            // $jstring =  json_encode($data, true);
+            // $zip = new ZipArchive();
+            // $filename = "archivo-" . $this->fecha . ".zip";
+            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+            //     exit("cannot open <$filename>\n");
+            // }
+            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            // $zip->close();
+            // $api = new Login();
+            // $api->Uploader($filename);
         }
     }
 }
