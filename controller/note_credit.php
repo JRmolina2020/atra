@@ -3,6 +3,7 @@
 require_once "../model/Facture.php";
 require "inc/zipfile.inc.php";
 require "authapi.php";
+require "clear.php";
 class App
 {
     public $fac;
@@ -12,6 +13,7 @@ class App
     public $fecha; //fecha actual.zip
     public $fechac; //fecha consulta parametro
     public $detalle;
+    public $clear;
 
     //variables globales para producto
     public $tipo; //tipo_producto
@@ -23,6 +25,7 @@ class App
         //parametro para la consulta por fecha
         $this->fechac = isset($_POST["fecha"]) ? ($_POST["fecha"]) : "";
         $this->rspta = $this->fac->notacredito($this->fechac);
+        $this->clear = new Clear();
         date_default_timezone_set("America/Bogota");
         $this->fecha = date("Y-m-d");
         $this->tipo = 1;
@@ -62,7 +65,7 @@ class App
                 "tipo" => $this->tipo,
                 "marca" => "",
                 "codigo" => $this->reg->codigo,
-                "nombre" => $this->reg->nombre,
+                "nombre" =>  $this->clear->cadena($this->reg->nombre),
                 "cantidad" => $cantidad,
                 "impuestos" => array(
                     array(
@@ -108,13 +111,8 @@ class App
                 $ciudad = $this->reg->ciudad;
             }
             //validando el barrio del cliente
-            if ($this->reg->barrio == "DIVINO NIÃ‘O" || $this->reg->barrio == "divino niÃ±o") {
-                $barrio = "divino nino";
-            } else if ($this->reg->barrio == "450 AÃ‘OS") {
-                $barrio = "450 ";
-            } else {
-                $barrio = $this->reg->barrio;
-            }
+            $barrio = $this->reg->barrio;
+
             //Valindado el telefono del cliente 
             if ($this->reg->telefono == "" || $this->reg->telefono == 0 || $this->reg->telefono == 1) {
                 $telefono = 11111111;
@@ -155,7 +153,7 @@ class App
                 "codigo_empresa" => 80,
                 "tipo_documento" => $tipo_documento,
                 "prefijo" => $this->reg->prefijo,
-                'fecha_documento' =>  $this->reg->fecha_documento,
+                'fecha_documento' =>  "2020-02-15", //$this->reg->fecha_documento,
                 "valor_descuento" =>  0,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -169,21 +167,21 @@ class App
                 //CLIENTES ARRAY
                 'cliente'     => array(
                     "codigo" => $this->reg->codigo,
-                    "nombres" => $this->reg->nombres,
-                    "apellidos" => $this->reg->nombres,
+                    "nombres" =>  $this->clear->cadena($this->reg->nombres),
+                    "apellidos" => $this->clear->cadena($this->reg->nombres),
                     "departamento" => $departamento,
                     "ciudad" => $ciudad,
-                    "barrio" => $barrio . "-" . $this->reg->ubicacion_envio,
+                    "barrio" => $this->clear->cadena($barrio) . "-" . $this->reg->ubicacion_envio,
                     "correo" => "",
                     "telefono" => intval($telefono),
-                    "direccion" => $this->reg->direccion,
+                    "direccion" => $this->clear->cadena($this->reg->direccion),
                     "documento" => $nit,
                     "punto_venta" =>  $this->reg->codigo,
                     "obligaciones" => ["ZZ"],
-                    "razon_social" => $this->reg->nombres,
-                    "punto_venta_nombre" => $this->reg->punto_venta,
+                    "razon_social" => $this->clear->cadena($this->reg->nombres),
+                    "punto_venta_nombre" => $this->clear->cadena($this->reg->punto_venta),
                     "codigo_postal" => "000000",
-                    "nombre_comercial" => $this->reg->punto_venta,
+                    "nombre_comercial" => $this->clear->cadena($this->reg->punto_venta),
                     "numero_mercantil" => 0,
                     "informacion_tributaria" => "ZZ",
                     "tipo_persona" => 1,
@@ -215,7 +213,7 @@ class App
                     )
                 ),
                 'extensibles'     => array(
-                    "asesor" => $this->reg->asesor,
+                    "asesor" => $this->clear->cadena($this->reg->asesor),
                     "pedido" => $pedido,
                     "zona" => $this->reg->zona,
                     // "peso" => 0.0,
