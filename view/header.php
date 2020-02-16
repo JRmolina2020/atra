@@ -1,6 +1,6 @@
 <?php include '../config/conexion.php';
 if (!isset($_SESSION['nombre'])) {
-  header('location:../');
+    header('location:../');
 }
 ?>
 <!doctype html>
@@ -11,10 +11,8 @@ if (!isset($_SESSION['nombre'])) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="../public/bootstrap/bootstrap.min.css">
-    <link rel="stylesheet"
-        href="https://rawgit.com/nghuuphuoc/bootstrapvalidator/v0.5.0/vendor/bootstrap/css/bootstrap.css" />
-    <link rel="stylesheet"
-        href="https://rawgit.com/nghuuphuoc/bootstrapvalidator/v0.5.0/dist/css/bootstrapValidator.css" />
+    <link rel="stylesheet" href="../public/bootstrap.css" />
+    <link rel="stylesheet" href="../public/bootstrapValidator.css" />
     <title>Atrato</title>
 </head>
 
