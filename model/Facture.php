@@ -81,9 +81,10 @@ class Facture
         ON C.BARRIO = B.CODIGO
         INNER JOIN CIUDADES CI
         ON CI.CODIGO = C.CIUDAD
-         WHERE CO.FEC_COMPRA  = '$fecha' and .co.consecutivo=42957";
+         WHERE CO.FEC_COMPRA  = '$fecha'";
         return ejecutarConsulta($sql);
     }
+    //DETALLE VENTA
     public function detalle($id)
     {
         $sql = "SELECT P.IDMARCA as tipo,P.CODIGO as codigo,P.NOMBRE as nombre,VD.UNID as cantidad ,VD.CAJA as caja,
@@ -97,6 +98,7 @@ class Facture
         WHERE VD.IDVENTA ='$id'";
         return ejecutarConsulta($sql);
     }
+    //DETALLE COMPRA
     public function compraDetalle($id)
     {
         $sql = "SELECT 

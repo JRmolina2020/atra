@@ -143,17 +143,15 @@ class App
             //Quitando las letras del pedido EJEM : APP123 -> 123
             $pedido = preg_replace('/[^0-9]/', '', $this->reg->pedido);
             //VALOR PRUEBA PARA LA NOTA
-            $numero = preg_replace('/[^0-9]/', '', $this->reg->vnot);
-            $pre = "SETT";
-            $numero = $pre . $numero;
-
+            //$numero = preg_replace('/[^0-9]/', '', $this->reg->vnot);
+            $observacion = str_replace("\r\n", '', $this->reg->observacion);
             $data[] = array(
-                "nota" => $this->reg->observacion,
+                "nota" => $observacion,
                 "numero" => $this->reg->consecutivo,
                 "codigo_empresa" => 80,
                 "tipo_documento" => $tipo_documento,
                 "prefijo" => $this->reg->prefijo,
-                'fecha_documento' =>  "2020-02-15", //$this->reg->fecha_documento,
+                'fecha_documento' => $this->reg->fecha_documento,
                 "valor_descuento" =>  0,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -216,17 +214,6 @@ class App
                     "asesor" => $this->clear->cadena($this->reg->asesor),
                     "pedido" => $pedido,
                     "zona" => $this->reg->zona,
-                    // "peso" => 0.0,
-                    // "orden" => 0,
-                    // "canastas" => 0,
-                    // "planilla" => "",
-                    // "logistica" => "",
-                    // "recibo_caja" => 0.0,
-                    // "distribucion" => "",
-                    // "asesor_numero" => 0,
-                    // "logistica_numero" => 0,
-                    // "cantidad_productos" => 0,
-                    // "distribucion_numero" => 0,
                 ),
                 'nota_debito'     => array(
                     "razon" => 0,
@@ -252,17 +239,17 @@ class App
             header("Location: ../view/errnote.php");;
             die();
         } else {
-            echo json_encode($data);
-            // $jstring =  json_encode($data, true);
-            // $zip = new ZipArchive();
-            // $filename = "archivo-" . $this->fecha . ".zip";
-            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-            //     exit("cannot open <$filename>\n");
-            // }
-            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            // $zip->close();
-            // $api = new Login();
-            // $api->Uploader($filename);
+            //echo json_encode($data);
+            $jstring =  json_encode($data, true);
+            $zip = new ZipArchive();
+            $filename = "archivo-" . $this->fecha . ".zip";
+            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+                exit("cannot open <$filename>\n");
+            }
+            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            $zip->close();
+            $api = new Login();
+            $api->Uploader($filename);
         }
     }
 }

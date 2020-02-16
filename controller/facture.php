@@ -24,7 +24,6 @@ class App
     public $valor_unit;
     public $valor_unitcaja;
 
-
     public function __construct()
     {
         $this->fac = new Facture();
@@ -35,8 +34,6 @@ class App
         $this->fecha = date("Y-m-d");
         //clear function
         $this->clear = new Clear();
-
-
         //inicializaciones
         $this->tipo = 1;
         $this->descuento = 0;
@@ -82,7 +79,6 @@ class App
                 $this->reg->descuentoA =  $this->reg->descuentoA;
                 $this->reg->descuentoB =  $this->reg->descuentoB;
             }
-
 
             //VALIDANDO DESCUENTO
             if ($this->reg->cantidad == 0) { //SI LA CANTIDAD ES 0 ES POR QUE ES UNA CAJA
@@ -219,14 +215,15 @@ class App
             } else {
                 $resolucion = "";
             }
+            $observacion = str_replace("\r\n", '', $this->reg->observacion);
             //ARRAYS
             $data[] =  array(
-                "nota" => $this->reg->observacion,
+                "nota" => $observacion,
                 "numero" => $numero,
                 "codigo_empresa" => 80,
                 "tipo_documento" => '01',
                 "prefijo" =>  $this->reg->prefijo,
-                'fecha_documento' => '2020-02-15',
+                'fecha_documento' => $this->reg->fecha_documento,
                 "valor_descuento" =>  $this->reg->valor_descuento,
                 "anticipos" => null,
                 "valor_ico" => 0.0,
@@ -326,18 +323,17 @@ class App
             header("Location: ../view/errfacture.php");;
             die();
         } else {
-
-            echo json_encode($data, JSON_UNESCAPED_UNICODE);
-            // $jstring =  json_encode($data, true);
-            // $zip = new ZipArchive();
-            // $filename = "archivo-" . $this->fecha . ".zip";
-            // if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
-            //     exit("cannot open <$filename>\n");
-            // }
-            // $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
-            // $zip->close();
-            // $api = new Login();
-            // $api->Uploader($filename);
+            //echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            $jstring =  json_encode($data, true);
+            $zip = new ZipArchive();
+            $filename = "archivo-" . $this->fecha . ".zip";
+            if ($zip->open($filename, ZipArchive::CREATE) !== TRUE) {
+                exit("cannot open <$filename>\n");
+            }
+            $zip->addFromString("archivo-" . $this->fecha . ".txt", $jstring);
+            $zip->close();
+            $api = new Login();
+            $api->Uploader($filename);
         }
     }
 }
